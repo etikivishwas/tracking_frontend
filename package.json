@@ -2,6 +2,16 @@
   "name": "ops",
   "version": "0.1.0",
   "private": true,
+  "browser": {
+    "http": false,
+    "https": false,
+    "stream": false,
+    "zlib": false,
+    "util": false,
+    "crypto": false,
+    "url": false,
+    "assert": false
+  },
   "dependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
@@ -9,6 +19,7 @@
     "@testing-library/user-event": "^13.5.0",
     "ajv": "^6.12.6",
     "ajv-keywords": "^3.5.2",
+    "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
     "react": "^19.1.1",
