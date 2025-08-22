@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 import Login from "./components/Login.jsx";
 import Dashboard from "./components/Dashboard.jsx";
@@ -11,10 +10,19 @@ import Trucks from "./components/Trucks.jsx";
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated ? 
+            <Navigate to="/dashboard" /> : 
+            <Login setIsAuthenticated={setIsAuthenticated} />
+          } 
+        />
         <Route
           path="/dashboard"
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}

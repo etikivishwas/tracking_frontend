@@ -1,38 +1,208 @@
-.App {
-  text-align: center;
+:root {
+  --primary-color: #1f78d1;
+  --humans-color: #28a745;
+  --machines-color: #fd7e14;
+  --trucks-color: #17a2b8;
+  --sidebar-expanded: 240px;
+  --sidebar-collapsed: 72px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
+body { background: #f8f9fa; }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Sidebar */
+.app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: var(--sidebar-expanded);
+  background: var(--primary-color);
+  color: #fff;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  transition: width 0.25s ease;
+  padding: 10px 6px;
+}
+
+.app-sidebar.collapsed {
+  width: var(--sidebar-collapsed);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+
+.brand {
+  font-weight: 600;
+}
+
+.hamburg {
+  width: 36px;
+  height: 36px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+/* Links */
+.sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 20px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.app-sidebar.collapsed .label {
+  display: none;
+}
+.app-sidebar.collapsed .sidebar-link {
+  justify-content: center;
+}
+
+/* Footer */
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profile-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+/* Content alignment */
+.app-content {
+  margin-left: var(--sidebar-expanded);
+  transition: margin-left 0.25s ease;
+}
+.content-collapsed {
+  margin-left: var(--sidebar-collapsed);
+}
+
+/* Stats cards */
+.stats-card {
+  border-radius: 12px;
+  color: #fff;
+  text-align: center;
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stats-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+.stats-human { background: var(--humans-color); }
+.stats-machine { background: var(--machines-color); }
+.stats-truck { background: var(--trucks-color); }
+
+/* Category cards */
+.card-humans, .card-machines, .card-trucks {
+  border-radius: 12px;
+  background: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-humans:hover, .card-machines:hover, .card-trucks:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #fff;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-link.active {
+  background: rgba(255, 255, 255, 0.25);
+  font-weight: 600;
+}
+
+
+
+/* Dashboard Tiles */
+.dashboard-tile {
+  position: relative;
+  height: 280px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+
+.dashboard-tile:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 36px rgba(0,0,0,0.28);
+}
+
+/* Colored Overlay + gradient */
+.dashboard-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(13,110,253,0.45);  
+  mix-blend-mode: multiply;           
+  z-index: 1;
+}
+
+.tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.65), rgba(0,0,0,0.1));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 20px;
+  color: #fff;
+  text-align: left;
+  z-index: 2;
+}
+
+.tile-overlay h3 {
+  margin: 0 0 5px;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.tile-overlay p {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.9;
 }

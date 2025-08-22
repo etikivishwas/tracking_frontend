@@ -1,46 +1,74 @@
-// src/components/Dashboard.js
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Container, Row, Col } from "react-bootstrap";
+import Sidebar from "./Sidebar";
+import "../App.css";
 
 function Dashboard() {
   const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
+
+  const handleLogout = () => navigate("/");
 
   return (
-    <div className="container mt-5">
-      <h2 className="mb-4 text-center">Mining Admin Dashboard</h2>
-      <div className="row">
-        <div className="col-md-4">
-          <div
-            className="card text-center shadow p-4"
-            onClick={() => navigate("/humans")}
-            style={{ cursor: "pointer" }}
-          >
-            <h4>Humans</h4>
-            <p>Track and manage workforce</p>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div
-            className="card text-center shadow p-4"
-            onClick={() => navigate("/machines")}
-            style={{ cursor: "pointer" }}
-          >
-            <h4>Machines</h4>
-            <p>Monitor mining machines</p>
-          </div>
-        </div>
-        <div className="col-md-4">
-          <div
-            className="card text-center shadow p-4"
-            onClick={() => navigate("/trucks")}
-            style={{ cursor: "pointer" }}
-          >
-            <h4>Trucks</h4>
-            <p>Track fleet operations</p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <>
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed(!collapsed)}
+        onLogout={handleLogout}
+      />
+
+      <main
+        className={`app-content ${
+          collapsed ? "content-collapsed" : "content-expanded"
+        }`}
+      >
+        <Container fluid className="py-4">
+          <h2 className="mb-4 text-center">Mining Admin Dashboard</h2>
+
+          <Row className=" mt-3 g-4 justify-content-center">
+            <Col xs={12} sm={6} md={4}>
+              <div
+                className="dashboard-tile"
+                onClick={() => navigate("/humans")}
+                style={{ backgroundImage: `url('/image/workers.jpg')` }}
+              >
+                <div className="tile-overlay">
+                  <h3>Workers</h3>
+                  <p>Track and manage workforce</p>
+                </div>
+              </div>
+            </Col>
+
+            <Col xs={12} sm={6} md={4}>
+              <div
+                className="dashboard-tile"
+                onClick={() => navigate("/machines")}
+                style={{ backgroundImage: `url('/image/Mining.jpg')` }}
+              >
+                <div className="tile-overlay">
+                  <h3>Machines</h3>
+                  <p>Monitor mining machines</p>
+                </div>
+              </div>
+            </Col>
+
+            <Col xs={12} sm={6} md={4}>
+              <div
+                className="dashboard-tile"
+                onClick={() => navigate("/trucks")}
+                style={{ backgroundImage: `url('/image/Trucks.webp')` }}
+              >
+                <div className="tile-overlay">
+                  <h3>Trucks</h3>
+                  <p>Track fleet operations</p>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </main>
+    </>
   );
 }
 
