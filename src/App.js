@@ -1,24 +1,38 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+import Login from "./components/Login.jsx";
+import Dashboard from "./components/Dashboard.jsx";
+import Humans from "./components/Humans.jsx";
+import Machines from "./components/Machines.jsx";
+import Trucks from "./components/Trucks.jsx";
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+        <Route
+          path="/dashboard"
+          element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/humans"
+          element={isAuthenticated ? <Humans /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/machines"
+          element={isAuthenticated ? <Machines /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/trucks"
+          element={isAuthenticated ? <Trucks /> : <Navigate to="/" />}
+        />
+      </Routes>
+    </Router>
   );
 }
 
