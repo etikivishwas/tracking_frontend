@@ -1,99 +1,91 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import Sidebar from "./Sidebar.jsx";
+import styles from "./Machines.module.css";
+import Sidebar from "./Sidebar";
+import { FaBell, FaSearch } from "react-icons/fa";
+import Image from './passport.jpg'
 import "../App.css";
 
 function Machines() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const workers = [
+    { id: 1, name: "Drilling Machine Alpha", role: "Wheel Tractor Scrappers", description: "A driller is a skilled professional who operates drill equipment, most commonly in the context of oil and gas or mining operations.", image: Image },
+    { id: 2, name: "Crusher Unit Beta", role: "Hydraulic Excavator", description: "Responsible for designing, developing, and maintaining systems in the field.", image: Image },
+    { id: 3, name: "Conveyor System Gamma", role: "Large Wheel Loaders", description: "Supervises drilling teams and ensures operations are performed safely and efficiently.", image: Image },
+    { id: 4, name: "Buldozer Delta", role: "Large Wheel Loaders", description: "Supervises drilling teams and ensures operations are performed safely and efficiently.", image: Image },
+  ];
+
+  const filteredWorkers = workers.filter(worker =>
+    worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    worker.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   const handleLogout = () => navigate("/");
 
   return (
-    <>
+    <div className={styles.applayout}>
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
       />
-
-      <main
-        className={`app-content ${
-          collapsed ? "content-collapsed" : "content-expanded"
-        }`}
-      >
-        <Container fluid className="py-4">
-          <Row className="align-items-center mb-3">
-            <Col><h2 className="mb-0">Machines Management</h2></Col>
-            <Col className="text-end">
-              <Button variant="primary" onClick={() => navigate("/machines/add")}>
-                + Add Machine
-              </Button>
-            </Col>
-          </Row>
-
-          {/* Overview */}
-          <Row className="g-4">
-            <Col md={12}>
-              <Card className="shadow">
-                <Card.Header className="d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0">Mining Equipment Overview</h5>
-                  <div className="d-flex gap-2">
-                    <Button size="sm" variant="outline-secondary">Export</Button>
-                    <Button size="sm" variant="outline-secondary">Refresh</Button>
+      <div className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded}`}>
+        <div className={styles.header}>
+          <div className={styles.title}>
+            <h2>Machine Management</h2>
+          </div>
+          <div className={styles.profile}>
+            <div className={styles.notification}>
+              <span className={styles.badge}>5</span>
+              <FaBell />
+            </div>
+            <img
+              src={Image}
+              alt="User"
+              className={styles.avatar1}
+            />
+            <span className={styles.username}>Alex Kumar</span>
+          </div>
+        </div>
+        <div className={styles.content}>
+          <div className={styles.topRow}>
+            <h3>MACHINES</h3>
+            <div className={styles.searchContainer}>
+              <FaSearch className={styles.searchIcon} />
+              <input 
+                type="text" 
+                placeholder="Search machines..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput} 
+              />
+            </div>
+          </div>
+          <div className={styles.cards}>
+            {filteredWorkers.map(worker => (
+                <div key={worker.id} className={styles.card}>
+                  <div className={styles.profileHeader}>
+                    <img
+                      src={worker.image}
+                      alt={worker.name}
+                      className={styles.avatar}
+                    />
+                    <div>
+                      <h4 className={styles.name}>{worker.name}</h4>
+                      <span className={styles.role}>{worker.role}</span>
+                    </div>
                   </div>
-                </Card.Header>
-                <Card.Body>
-                  <Row className="g-3">
-                    <Col md={4}>
-                      <div className="stats-card stats-machine shadow-sm">
-                        <h6>Total Machines</h6>
-                        <h2 className="mb-0">45</h2>
-                      </div>
-                    </Col>
-                    <Col md={4}>
-                      <div className="stats-card shadow-sm" style={{ background: "#20c997" }}>
-                        <h6>Operational</h6>
-                        <h2 className="mb-0">38</h2>
-                      </div>
-                    </Col>
-                    <Col md={4}>
-                      <div className="stats-card shadow-sm" style={{ background: "#6c757d" }}>
-                        <h6>Under Maintenance</h6>
-                        <h2 className="mb-0">7</h2>
-                      </div>
-                    </Col>
-                  </Row>
-
-                  <hr className="my-4" />
-
-                  <p className="mb-0">
-                    Track machine uptime, assign equipment to jobs, and schedule maintenance.
-                    Use the “Add Machine” button to onboard new equipment.
-                  </p>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row className="g-4 mt-1">
-            <Col md={12}>
-              <Card className="shadow">
-                <Card.Header>
-                  <h5 className="mb-0">Machines</h5>
-                </Card.Header>
-                <Card.Body>
-                  <div className="text-muted">
-                    Table/list of machines goes here (name, type, site, status, last service, actions…)
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-        </Container>
-      </main>
-    </>
+                  <p className={styles.description}>{worker.description}</p>
+                </div>
+              ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

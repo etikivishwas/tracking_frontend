@@ -65,17 +65,6 @@
   cursor: pointer;
 }
 
-.searchContainer {
-    display: flex;
-    align-items: center;
-}
-
-.searchIcon {
-    margin-top: 5px;
-    margin-right: 8px;
-    font-size: 30px;
-}
-
 .username {
   font-weight: 500;
   color: black;
@@ -133,10 +122,30 @@
   margin-bottom: 12px;
 }
 
+.searchContainer {
+    display: flex;
+    align-items: center;
+}
+
+.searchIcon {
+    margin-top: 5px;
+    margin-right: 8px;
+    font-size: 30px;
+}
+
+.avatar1 {
+  width: 50px;
+  height: 50px;
+  border-radius:50%;
+  margin-right: 12px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
 .avatar {
   width: 50px;
   height: 50px;
-  border-radius: 50%;
+  border-radius:20%;
   margin-right: 12px;
 }
 
@@ -148,7 +157,7 @@
 
 .role {
   display: inline-block;
-  background: #007bff;
+  background-color: purple;
   color: white;
   font-size: 12px;
   padding: 2px 8px;

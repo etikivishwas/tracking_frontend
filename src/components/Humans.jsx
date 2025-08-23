@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Humans.module.css";
 import Sidebar from "./Sidebar";
-import { FaBell } from "react-icons/fa";
+import { FaBell, FaSearch } from "react-icons/fa";
 import Image from './passport.jpg'
 import "../App.css";
 
@@ -52,14 +52,17 @@ function Humans() {
         </div>
         <div className={styles.content}>
           <div className={styles.topRow}>
-            <h3>Work Force</h3>
-            <input 
-              type="text" 
-              placeholder="Search workers..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput} 
-            />
+            <h3>WORK FORCE</h3>
+            <div className={styles.searchContainer}>
+              <FaSearch className={styles.searchIcon} />
+              <input 
+                type="text" 
+                placeholder="Search vehicles..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput} 
+              />
+            </div>
           </div>
           <div className={styles.cards}>
             {filteredWorkers.map(worker => (
