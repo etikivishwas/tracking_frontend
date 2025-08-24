@@ -125,6 +125,7 @@
 .searchContainer {
     display: flex;
     align-items: center;
+    margin-right: 3%;
 }
 
 .searchIcon {

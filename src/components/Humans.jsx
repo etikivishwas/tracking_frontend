@@ -1,27 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Humans.module.css";
 import Sidebar from "./Sidebar";
 import { FaBell, FaSearch } from "react-icons/fa";
-import Image from './passport.jpg'
+import axios from "axios";
 import "../App.css";
 
 function Humans() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [workers, setWorkers] = useState([]);
 
-  const workers = [
-    { id: 1, name: "Ravi Kumar", role: "Driller", description: "A driller is a skilled professional who operates drill equipment, most commonly in the context of oil and gas or mining operations.", image: Image },
-    { id: 2, name: "Anita Sharma", role: "Engineer", description: "Responsible for designing, developing, and maintaining systems in the field.", image: Image },
-    { id: 3, name: "Amit Verma", role: "Supervisor", description: "Supervises drilling teams and ensures operations are performed safely and efficiently.", image: Image },
-  ];
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/workers")
+      .then(res => setWorkers(res.data))
+      .catch(err => console.error(err));
+  }, []);
 
   const filteredWorkers = workers.filter(worker =>
     worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     worker.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
 
   const handleLogout = () => navigate("/");
 
@@ -43,7 +43,7 @@ function Humans() {
               <FaBell />
             </div>
             <img
-              src={Image}
+              src="http://localhost:5000/uploads/1.jpg"
               alt="User"
               className={styles.avatar}
             />
@@ -57,7 +57,7 @@ function Humans() {
               <FaSearch className={styles.searchIcon} />
               <input 
                 type="text" 
-                placeholder="Search vehicles..." 
+                placeholder="Search workers..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={styles.searchInput} 
@@ -66,21 +66,25 @@ function Humans() {
           </div>
           <div className={styles.cards}>
             {filteredWorkers.map(worker => (
-                <div key={worker.id} className={styles.card}>
-                  <div className={styles.profileHeader}>
-                    <img
-                      src={worker.image}
-                      alt={worker.name}
-                      className={styles.avatar}
-                    />
-                    <div>
-                      <h4 className={styles.name}>{worker.name}</h4>
-                      <span className={styles.role}>{worker.role}</span>
-                    </div>
+              <div 
+                key={worker.id} 
+                className={styles.card}
+                onClick={() => navigate(`/workers/${worker.id}`)} // 🔥 Navigate to WorkerDetails
+              >
+                <div className={styles.profileHeader}>
+                  <img
+                    src={`http://localhost:5000${worker.image_url}`}
+                    alt={worker.name}
+                    className={styles.avatar}
+                  />
+                  <div>
+                    <h4 className={styles.name}>{worker.name}</h4>
+                    <span className={styles.role}>{worker.role}</span>
                   </div>
-                  <p className={styles.description}>{worker.description}</p>
                 </div>
-              ))}
+                <p className={styles.description}>{worker.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
