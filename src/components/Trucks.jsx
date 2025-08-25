@@ -1,25 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Trucks.module.css";
 import Sidebar from "./Sidebar";
 import { FaBell, FaSearch } from "react-icons/fa";
 import Image from './passport.jpg'
 import "../App.css";
+import axios from "axios";
 
 function Trucks() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [truck, setTruck] = useState([]);
 
-  const workers = [
-    { id: 1, name: "Wheel Tractor Scrappers", role: "Wheel Tractor Scrappers", description: "A driller is a skilled professional who operates drill equipment, most commonly in the context of oil and gas or mining operations.", image: Image },
-    { id: 2, name: "Hydraulic Excavator", role: "Hydraulic Excavator", description: "Responsible for designing, developing, and maintaining systems in the field.", image: Image },
-    { id: 3, name: "Large Wheel Loaders", role: "Large Wheel Loaders", description: "Supervises drilling teams and ensures operations are performed safely and efficiently.", image: Image },
-  ];
+  useEffect(() => {
+      axios.get("http://localhost:5000/api/trucks")
+        .then(res => setTruck(res.data))
+        .catch(err => console.error(err));
+    }, []);
 
-  const filteredWorkers = workers.filter(worker =>
-    worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    worker.role.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTrucks = truck.filter(truck =>
+    truck.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    truck.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
 
@@ -65,22 +67,26 @@ function Trucks() {
             </div>
           </div>
           <div className={styles.cards}>
-            {filteredWorkers.map(worker => (
-                <div key={worker.id} className={styles.card}>
-                  <div className={styles.profileHeader}>
-                    <img
-                      src={worker.image}
-                      alt={worker.name}
-                      className={styles.avatar}
-                    />
-                    <div>
-                      <h4 className={styles.name}>{worker.name}</h4>
-                      <span className={styles.role}>{worker.role}</span>
-                    </div>
+            {filteredTrucks.map(truck => (
+              <div 
+                key={truck.id} 
+                className={styles.card}
+                onClick={() => navigate(`/trucks/${truck.id}`)} // 🔥 Navigate to TruckDetails
+              >
+                <div className={styles.profileHeader}>
+                  <img
+                    src={`http://localhost:5000${truck.image_url}`}
+                    alt={truck.name}
+                    className={styles.avatar}
+                  />
+                  <div>
+                    <h4 className={styles.name}>{truck.name}</h4>
+                    <span className={styles.role}>{truck.role}</span>
                   </div>
-                  <p className={styles.description}>{worker.description}</p>
                 </div>
-              ))}
+                <p className={styles.description}>{truck.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

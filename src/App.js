@@ -7,6 +7,8 @@ import Humans from "./components/Humans.jsx";
 import Machines from "./components/Machines.jsx";
 import Trucks from "./components/Trucks.jsx";
 import WorkerDetails from "./components/WorkerDetails";
+import TruckDetails from "./components/TruckDetails";
+import MachineDetails from './components/MachineDetails.jsx'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -41,6 +43,8 @@ function App() {
           element={isAuthenticated ? <Trucks /> : <Navigate to="/" />}
         />
         <Route path="/workers/:id" element={<WorkerDetails />} />
+        <Route path="/trucks/:id" element={<TruckDetails />} />
+        <Route path="/machines/:id" element={<MachineDetails />} />
       </Routes>
     </Router>
   );

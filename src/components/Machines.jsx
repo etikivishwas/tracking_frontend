@@ -1,39 +1,56 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Machines.module.css";
 import Sidebar from "./Sidebar";
 import { FaBell, FaSearch } from "react-icons/fa";
-import Image from './passport.jpg'
+import Image from "./passport.jpg";
 import "../App.css";
 
 function Machines() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [machines, setMachines] = useState([]);
 
-  const workers = [
-    { id: 1, name: "Drilling Machine Alpha", role: "Wheel Tractor Scrappers", description: "A driller is a skilled professional who operates drill equipment, most commonly in the context of oil and gas or mining operations.", image: Image },
-    { id: 2, name: "Crusher Unit Beta", role: "Hydraulic Excavator", description: "Responsible for designing, developing, and maintaining systems in the field.", image: Image },
-    { id: 3, name: "Conveyor System Gamma", role: "Large Wheel Loaders", description: "Supervises drilling teams and ensures operations are performed safely and efficiently.", image: Image },
-    { id: 4, name: "Buldozer Delta", role: "Large Wheel Loaders", description: "Supervises drilling teams and ensures operations are performed safely and efficiently.", image: Image },
-  ];
+  // ✅ Fetch machines from backend
+  useEffect(() => {
+    const fetchMachines = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/machines");
+        const data = await res.json();
+        setMachines(data);
+      } catch (error) {
+        console.error("Error fetching machines:", error);
+      }
+    };
 
-  const filteredWorkers = workers.filter(worker =>
-    worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    worker.role.toLowerCase().includes(searchTerm.toLowerCase())
+    fetchMachines();
+  }, []);
+
+  // ✅ Filter by search term
+  const filteredMachines = machines.filter(
+    (machine) =>
+      machine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      machine.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
 
   const handleLogout = () => navigate("/");
 
   return (
     <div className={styles.applayout}>
+      {/* Sidebar */}
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
       />
-      <div className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded}`}>
+
+      <div
+        className={`${styles.appcontent} ${
+          collapsed ? styles.contentcollapsed : styles.contentexpanded
+        }`}
+      >
+        {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
             <h2>Machine Management</h2>
@@ -43,45 +60,54 @@ function Machines() {
               <span className={styles.badge}>5</span>
               <FaBell />
             </div>
-            <img
-              src={Image}
-              alt="User"
-              className={styles.avatar1}
-            />
+            <img src={Image} alt="User" className={styles.avatar1} />
             <span className={styles.username}>Alex Kumar</span>
           </div>
         </div>
+
+        {/* Content */}
         <div className={styles.content}>
           <div className={styles.topRow}>
             <h3>MACHINES</h3>
             <div className={styles.searchContainer}>
               <FaSearch className={styles.searchIcon} />
-              <input 
-                type="text" 
-                placeholder="Search machines..." 
+              <input
+                type="text"
+                placeholder="Search machines..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={styles.searchInput} 
+                className={styles.searchInput}
               />
             </div>
           </div>
+
+          {/* Machine cards */}
           <div className={styles.cards}>
-            {filteredWorkers.map(worker => (
-                <div key={worker.id} className={styles.card}>
-                  <div className={styles.profileHeader}>
-                    <img
-                      src={worker.image}
-                      alt={worker.name}
-                      className={styles.avatar}
-                    />
-                    <div>
-                      <h4 className={styles.name}>{worker.name}</h4>
-                      <span className={styles.role}>{worker.role}</span>
-                    </div>
+            {filteredMachines.map((machine) => (
+              <div
+                key={machine.id}
+                className={styles.card}
+                onClick={() => navigate(`/machines/${machine.id}`)}
+              >
+                <div className={styles.profileHeader}>
+                  <img
+                    src={`http://localhost:5000${machine.image}`} 
+                    alt={machine.name}
+                    className={styles.avatar}
+                  />
+                  <div>
+                    <h4 className={styles.name}>{machine.name}</h4>
+                    <span className={styles.role}>{machine.role}</span>
                   </div>
-                  <p className={styles.description}>{worker.description}</p>
                 </div>
-              ))}
+                <p className={styles.description}>{machine.description}</p>
+              </div>
+            ))}
+
+            {/* If no results */}
+            {filteredMachines.length === 0 && (
+              <p className={styles.noData}>No machines found.</p>
+            )}
           </div>
         </div>
       </div>
