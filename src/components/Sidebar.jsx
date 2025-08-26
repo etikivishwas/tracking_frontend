@@ -38,7 +38,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout }) {
           }
         >
           <i className="bi bi-people-fill"></i>
-          <span className="label">Humans</span>
+          <span className="label">Workers</span>
         </NavLink>
 
         <NavLink

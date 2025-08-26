@@ -26,6 +26,19 @@ function TruckDetails() {
       .catch(err => console.error(err));
   }, [id]);
 
+    const [tracker, setTracker] = useState(null);
+
+  useEffect(() => {
+    axios.get(`http://localhost:5000/api/trucks/${id}`)
+      .then(res => {
+        setTruck(res.data.truck);
+        setLogs(res.data.logs);
+        setTracker(res.data.tracker);
+      })
+      .catch(err => console.error(err));
+  }, [id]);
+
+
   if (!truck) return <p>Loading...</p>;
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
@@ -112,6 +125,85 @@ function TruckDetails() {
                 </div>
             </div>
         </div>
+        <div className={styles.container3}>
+            {tracker ? (
+                <div className={styles.trackerSplit}>
+                
+                    <div className={styles.trackerSection}>
+                        <h5>Truck Data</h5>
+                        <div className={styles.trackerInfo}>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Latitude</p>
+                            <p className={styles.value}>{tracker.latitude}</p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Longitude</p>
+                            <p className={styles.value}>{tracker.longitude}</p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Altitude</p>
+                            <p className={styles.value}>{tracker.altitude} m</p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Speed</p>
+                            <p className={styles.value}>{tracker.speed_kmph} km/h</p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Heading</p>
+                            <p className={styles.value}>{tracker.heading_degrees}°</p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Ignition</p>
+                            <p className={styles.value}>{tracker.ignition ? "ON" : "OFF"}</p>
+                        </div>
+                        <div className={styles.trackerCardWide}>
+                            <p className={styles.title}>Event</p>
+                            <p className={styles.value}>
+                            {tracker.event_type} - {tracker.event_description}
+                            </p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Geofence Alert</p>
+                            <p className={styles.value}>{tracker.geofence_alert ? "Yes" : "No"}</p>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div className={styles.trackerSection}>
+                        <h5>GPS Tracker Device</h5>
+                        <div className={styles.trackerInfo}>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Device ID</p>
+                            <p className={styles.value}>{tracker.device_id}</p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Timestamp</p>
+                            <p className={styles.value}>
+                            {new Date(tracker.timestamp).toLocaleString()}
+                            </p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Battery</p>
+                            <p className={styles.value}>{tracker.battery_level}%</p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>Signal</p>
+                            <p className={styles.value}>{tracker.signal_strength}</p>
+                        </div>
+                        <div className={styles.trackerCard}>
+                            <p className={styles.title}>GPS Fix</p>
+                            <p className={styles.value}>{tracker.gps_fix ? "Yes" : "No"}</p>
+                        </div>
+                        </div>
+                    </div>
+
+                </div>
+            ) : (
+                <p>No tracker data available</p>
+            )}
+        </div>
+
+
         <div className={styles.container2}>
             <div className={styles.fuel}>
                 <LuFuel className={styles.icon1} />

@@ -27,7 +27,7 @@ export default function NavigationBar({ onLogout, onToggleSidebar }) {
         <Navbar.Collapse id="main-nav">
           <Nav className="me-auto">
             <Nav.Link as={NavLink} to="/dashboard">Dashboard</Nav.Link>
-            <Nav.Link as={NavLink} to="/humans">Humans</Nav.Link>
+            <Nav.Link as={NavLink} to="/humans">Workers</Nav.Link>
             <Nav.Link as={NavLink} to="/machines">Machines</Nav.Link>
             <Nav.Link as={NavLink} to="/trucks">Trucks</Nav.Link>
           </Nav>

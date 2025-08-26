@@ -8,6 +8,7 @@
   transition: all 0.3s ease;
   margin: 0;
   padding: 0;
+  background-color: #f5f6fa;
 }
 
 .contentexpanded {
@@ -183,38 +184,32 @@
 .container2 {
   display: flex;
   justify-content: center; 
-  align-items: flex-start;        
+  align-items: stretch;        
   width: 100%;
   gap: 2rem; 
-  height: 55%;
+  margin: 2rem 0;
+}
+
+.fuel, .weight, .chartSection {
+  flex: 1;                
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;       /* ensures they don’t shrink too much */
 }
 
 .fuel {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-  width: 30%; 
-  height: 70%;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  align-items: center;
-  justify-content: start;
+  margin-left: 2%;
 }
 
-.weight {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-  width: 30%; 
-  height: 70%;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  align-items: center;
-  justify-content: start;
+.chartSection {
+  margin-right: 2%;
 }
 
 .icon1 {
@@ -234,25 +229,6 @@
   color: #007bff;
   font-weight: bold;
   font-size: 2rem;
-}
-
-.weight {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-  width: 30%; 
-  height: 70%;
-}
-
-
-.chartSection {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  width: 30%;
-  height: 70%;
 }
 
 
@@ -309,3 +285,90 @@
   border-radius: 50%;
   background-color: green;
 }
+
+.container3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: #f5f6fa;
+  border-radius: 16px;
+}
+
+.trackerInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.trackerCard, .trackerCardWide {
+  flex: 1 1 140px;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.trackerCardWide {
+  flex: 1 1 100%;
+}
+
+.title {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.4rem;
+}
+
+.value {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.trackerSplit {
+  display: flex;
+  flex-direction: row;   
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;      
+}
+
+.trackerSection {
+  flex: 1;                
+  min-width: 300px;     
+  background: #fff;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.trackerSection h5 {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #444;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.trackerInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.trackerCard, .trackerCardWide {
+  flex: 1 1 140px;
+  padding: 0.8rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.trackerCardWide {
+  flex: 1 1 100%;
+}
+
+
