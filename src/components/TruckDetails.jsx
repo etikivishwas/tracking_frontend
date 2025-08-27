@@ -149,7 +149,7 @@ function TruckDetails() {
                             <p className={styles.value}>{tracker.speed_kmph} km/h</p>
                         </div>
                         <div className={styles.trackerCard}>
-                            <p className={styles.title}>Heading</p>
+                            <p className={styles.title}>Heading_Degrees</p>
                             <p className={styles.value}>{tracker.heading_degrees}°</p>
                         </div>
                         <div className={styles.trackerCard}>
