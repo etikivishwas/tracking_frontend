@@ -121,6 +121,14 @@ function MachineDetails() {
           <div className={styles.beaconSection}>
             {beacon ? (
               <>
+              <div className={styles.beaconCard}>
+                <p className={styles.para}>Beacon ID</p>
+                <p className={styles.para2}>{beacon.deviceId}</p>
+              </div>
+              <div className={styles.beaconCard}>
+                <p className={styles.para}>Timestamp</p>
+                <p className={styles.para2}>{beacon.timestamp}</p>
+              </div>
                 <div className={styles.beaconCard}>
                   <p className={styles.para}>Accelerometer (X,Y,Z)</p>
                   <p className={styles.para2}>

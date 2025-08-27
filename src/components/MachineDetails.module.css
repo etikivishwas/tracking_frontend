@@ -68,7 +68,7 @@
 }
 
 .backBtn {
-  background: #8b1f8b;
+  background: blue;
   color: white;
   border: none;
   padding: 6px 12px;
@@ -167,29 +167,33 @@
 }
 
 .beaconSection {
-  flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 15px;
+  width: 50%;
+  gap: 2rem;
 }
 
 .beaconCard {
   background: #fff;
-  padding: 15px;
+  padding: 10px;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  width: 42%;
 }
 
 .para {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   color: #444;
 }
 
 .para2 {
-  font-size: 13px;
+  font-size: 14px;
   color: #666;
   margin-top: 5px;
+  font-weight: 500;
 }
 
 .chartSection {
