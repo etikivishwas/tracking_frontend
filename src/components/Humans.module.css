@@ -1,13 +1,16 @@
 .applayout {
   display: flex;
+  background-color: black;
 }
 
 .appcontent {
   flex: 1;
-  padding: 20px;
+  padding: 0;
   transition: all 0.3s ease;
   margin: 0;
   padding: 0;
+  background-color: black;
+  color: white;
 }
 
 .contentexpanded {
@@ -41,7 +44,7 @@
   position: relative;
   font-size: 1.2rem;
   cursor: pointer;
-  color: black;
+  color: white;
   padding-right: 1rem;
 }
 
@@ -79,13 +82,13 @@
 
 .username {
   font-weight: 500;
-  color: black;
+  color: white;
   cursor: pointer;
 }
 
 .content {
-    min-height: 80vh;
-    background-color: #f5f6fa;
+    min-height: 100vh;
+    background-color: black;
 
 }
 
@@ -103,6 +106,9 @@
 .topRow .searchInput {
     margin-right: 6%;
     margin-top: 2%;
+    background-color: black;
+    color: white;
+    border: 1px solid white;
 }
 
 .cards {
@@ -114,18 +120,20 @@
 }
 
 .card {
-    background: white;
-    border: 1px solid #eee;
-    border-radius: 8px;
+    background: linear-gradient(200deg, #004d00, #009933);
+    border: none;
+    border-radius: 12px;
     padding: 16px;
     width: 30%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     transition: transform 0.2s;
     cursor: pointer;
+    color: white;
 }
 
 .card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
 }
 
 .profileHeader {
@@ -145,12 +153,13 @@
   font-size: 16px;
   font-weight: 600;
   margin: 0;
+  color: white;
 }
 
 .role {
   display: inline-block;
-  background: #007bff;
-  color: white;
+  background: #00cc44;
+  color: black;
   font-size: 12px;
   padding: 2px 8px;
   border-radius: 12px;
@@ -159,7 +168,12 @@
 
 .description {
   font-size: 14px;
-  color: #555;
+  color: #e0e0e0;
   line-height: 1.5;
 }
 
+.horizontal {
+  border: none;
+  border-top: 1px solid white;
+  margin: 2px 0;
+}

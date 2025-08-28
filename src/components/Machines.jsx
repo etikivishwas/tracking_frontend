@@ -64,6 +64,7 @@ function Machines() {
             <span className={styles.username}>Alex Kumar</span>
           </div>
         </div>
+        <hr className={styles.horizontal}/>
 
         {/* Content */}
         <div className={styles.content}>

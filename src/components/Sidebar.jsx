@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 
+
 export default function Sidebar({ collapsed, onToggle, onLogout }) {
   return (
     <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>

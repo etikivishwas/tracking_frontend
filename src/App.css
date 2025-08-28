@@ -1,13 +1,13 @@
 :root {
   --primary-color: #1f78d1;
-  --humans-color: #28a745;
+  --humans-color: rgb(15, 135, 19);
   --machines-color: #fd7e14;
   --trucks-color: #17a2b8;
   --sidebar-expanded: 240px;
   --sidebar-collapsed: 72px;
 }
 
-body { background: #f8f9fa; }
+body { background: black; }
 
 /* Sidebar */
 .app-sidebar {
@@ -16,7 +16,7 @@ body { background: #f8f9fa; }
   left: 0;
   height: 100vh;
   width: var(--sidebar-expanded);
-  background: var(--primary-color);
+  background: var(--humans-color);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -70,12 +70,14 @@ body { background: #f8f9fa; }
 
 .sidebar-link:hover,
 .sidebar-link.active {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
 }
+
 
 .app-sidebar.collapsed .label {
   display: none;
 }
+
 .app-sidebar.collapsed .sidebar-link {
   justify-content: center;
 }

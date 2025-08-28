@@ -1,7 +1,7 @@
 .applayout {
   display: flex;
   min-height: 100vh;
-  background: #f9f9f9;
+  background: black;
 }
 
 .appcontent {
@@ -25,6 +25,10 @@
   align-items: center;
 }
 
+.head1 {
+  color: white;
+}
+
 .profile {
   display: flex;
   align-items: center;
@@ -34,6 +38,7 @@
 .notification {
   position: relative;
   margin-right: 10px;
+  color: white;
 }
 
 .badge {
@@ -56,12 +61,13 @@
 
 .username {
   font-weight: 600;
+  color: white;
 }
 
 /* Machine details */
 .container1 {
   margin-top: 20px;
-  background: white;
+  background: black;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
@@ -89,11 +95,11 @@
   align-items: stretch;           /* make all equal height */
   gap: 2rem;
   width: 100%;
-  padding: 2%;
+  padding-top: 2%;
 }
 
 .profileCard {
-  background-color: rgb(167, 22, 177);
+  background: linear-gradient(200deg, #057305, #0b6128);
   display: flex;
   gap: 20px;
   width: 32%;
@@ -113,7 +119,7 @@
 }
 
 .card {
-  background: white;
+  background: rgb(7, 51, 16);
   border-radius: 8px;
   padding: 15px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
@@ -127,24 +133,41 @@
 
 .icon {
   font-size: 16px;
-  color: #6c757d;
+  color: white;
 }
 
 .title {
   font-size: 14px;
   font-weight: 700;
-  color: #6c757d;
+  color: white;
   margin: 0;
 }
 
 .role {
-  background-color: purple;
+  background-color: green;
   padding: 3px;
   border-radius: 10%;
 }
 
 .value1 {
   padding: 0.5rem;
+  color: white;
+}
+
+.round1 {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: red;
+}
+
+.round2 {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgb(17, 174, 17);
+  display: inline-block;
+  margin-right: 8px;
 }
 
 .value2 {
@@ -154,8 +177,12 @@
   margin-top: 5px;
 }
 
+.value3 {
+  color: white;
+}
+
 .infoBox {
-  background: white;
+  background: rgb(7, 51, 16);
   width: 32%;
   padding: 20px;
   border-radius: 10px;
@@ -169,7 +196,7 @@
 .infoBox h4 {
   margin: 0 0 12px;
   font-size: 20px;
-  color: #444;
+  color: white;
 }
 
 .progressCircle {
@@ -187,6 +214,7 @@
   transform: translate(-50%, -50%);
   font-weight: bold;
   font-size: 16px;
+  color: white;
 }
 
 /* Beacon + Chart container */
@@ -194,6 +222,7 @@
   margin-top: 20px;
   display: flex;
   gap: 20px;
+  padding: 2%;
 }
 
 .beaconSection {
@@ -206,7 +235,7 @@
 }
 
 .beaconCard {
-  background: #fff;
+  background: rgb(7, 51, 16);
   padding: 10px;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
@@ -216,20 +245,35 @@
 .para {
   font-weight: 600;
   font-size: 16px;
-  color: #444;
+  color: white;
 }
 
 .para2 {
   font-size: 14px;
-  color: #666;
+  color: white;
   margin-top: 5px;
   font-weight: 500;
 }
 
 .chartSection {
   flex: 2;
-  background: #fff;
+  background: rgb(7, 51, 16);
+  padding: 15px;
+  border-radius: 10px;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.trackerCalendar {
+  margin-top: 20px;
+  background: rgb(7, 51, 16);
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.horizontal {
+  border: none;
+  border-top: 1px solid white;
+  margin: 2px 0;
 }

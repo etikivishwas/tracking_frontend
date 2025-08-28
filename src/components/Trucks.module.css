@@ -1,5 +1,6 @@
 .applayout {
   display: flex;
+  background-color: black;
 }
 
 .appcontent {
@@ -27,6 +28,7 @@
 
 .title {
     margin-left: 2%;
+    color: white;
 }
 
 .profile {
@@ -41,7 +43,7 @@
   position: relative;
   font-size: 1.2rem;
   cursor: pointer;
-  color: black;
+  color: white;
   padding-right: 1rem;
 }
 
@@ -67,13 +69,13 @@
 
 .username {
   font-weight: 500;
-  color: black;
+  color: white;
   cursor: pointer;
 }
 
 .content {
-    min-height: 80vh;
-    background-color: #f5f6fa;
+    min-height: 100vh;
+    background: black;
 
 }
 
@@ -81,6 +83,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    color: white;
 }
 
 .topRow h3 {
@@ -91,6 +94,14 @@
 .topRow .searchInput {
     margin-right: 6%;
     margin-top: 2%;
+    background-color: black;
+    border: 1px solid white;
+}
+
+.horizontal {
+  border: none;
+  border-top: 1px solid white;
+  margin: 2px 0;
 }
 
 .cards {
@@ -102,8 +113,7 @@
 }
 
 .card {
-    background: white;
-    border: 1px solid #eee;
+    background: linear-gradient(200deg, #057305, #0b6128);
     border-radius: 8px;
     padding: 16px;
     width: 30%;
@@ -154,6 +164,7 @@
   font-size: 16px;
   font-weight: 600;
   margin: 0;
+  color: white;
 }
 
 .role {
@@ -168,7 +179,7 @@
 
 .description {
   font-size: 14px;
-  color: #555;
+  color: white;
   line-height: 1.5;
 }
 

@@ -7,7 +7,14 @@ import { FaBell } from "react-icons/fa";
 import { IoLocationOutline } from "react-icons/io5";
 import { LuFuel } from "react-icons/lu";
 import { GiWeightScale } from "react-icons/gi";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -18,11 +25,12 @@ function TruckDetails() {
   const [truck, setTruck] = useState(null);
   const [logs, setLogs] = useState([]);
   const [tracker, setTracker] = useState(null);
+  const [location, setLocation] = useState(null);
 
-  // New state for calendar
+  // Calendar
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Initial fetch (truck + tracker + logs)
+  // Initial fetch
   useEffect(() => {
     axios
       .get(`http://localhost:5000/api/trucks/${id}`)
@@ -30,6 +38,7 @@ function TruckDetails() {
         setTruck(res.data.truck);
         setLogs(res.data.logs);
         setTracker(res.data.tracker);
+        setLocation(res.data.location);
       })
       .catch((err) => console.error(err));
   }, [id]);
@@ -37,13 +46,16 @@ function TruckDetails() {
   // Handle calendar date change
   const handleDateChange = (date) => {
     setSelectedDate(date);
-
-    // Call API with selected date to filter data
     axios
-      .get(`http://localhost:5000/api/trucks/${id}?date=${date.toISOString().split("T")[0]}`)
+      .get(
+        `http://localhost:5000/api/trucks/${id}?date=${date
+          .toISOString()
+          .split("T")[0]}`
+      )
       .then((res) => {
         setLogs(res.data.logs);
         setTracker(res.data.tracker);
+        setLocation(res.data.location);
       })
       .catch((err) => console.error(err));
   };
@@ -51,7 +63,13 @@ function TruckDetails() {
   if (!truck) return <p>Loading...</p>;
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
-  const todayHours = logs.length ? logs[logs.length - 1].hours_worked : 0;
+  const todayHours = latestLog ? latestLog.hours_worked : 0;
+
+  // ✅ Always prefer location name instead of lat/long
+  const currentLocation =
+    latestLog?.current_location ||
+    location?.current_location ||
+    "N/A";
 
   const handleLogout = () => navigate("/");
 
@@ -85,8 +103,9 @@ function TruckDetails() {
             <span className={styles.username}>Alex Kumar</span>
           </div>
         </div>
+        <hr className={styles.horizontal} />
 
-        {/* BACK BUTTON + PROFILE CARD */}
+        {/* BACK + PROFILE */}
         <div className={styles.container1}>
           <div>
             <button onClick={() => navigate(-1)} className={styles.backBtn}>
@@ -107,26 +126,27 @@ function TruckDetails() {
               />
             </div>
             <div className={styles.info}>
+              {/* ✅ Current Location */}
               <div className={styles.card}>
                 <div className={styles.row}>
                   <span className={styles.round1}></span>
                   <IoLocationOutline className={styles.icon} />
                   <p className={styles.title}>CURRENT LOCATION</p>
                 </div>
-                <p className={styles.value1}>
-                  {latestLog ? latestLog.current_location : "N/A"}
-                </p>
+                <p className={styles.value1}>{currentLocation}</p>
               </div>
+              {/* Condition */}
               <div className={styles.card}>
                 <div className={styles.row}>
                   <span className={styles.round2}></span>
-                  <p className={styles.title}>CONDUCTION</p>
+                  <p className={styles.title}>CONDITION</p>
                 </div>
                 <p className={styles.value2}>
                   {latestLog ? latestLog.state : "N/A"}
                 </p>
               </div>
             </div>
+            {/* Hours */}
             <div className={styles.infoBox}>
               <h4>Working Hours Today</h4>
               <div className={styles.progressCircle}>
@@ -159,7 +179,7 @@ function TruckDetails() {
           </div>
         </div>
 
-        {/* TRACKER DATA */}
+        {/* TRACKER */}
         <div className={styles.container3}>
           {tracker ? (
             <div className={styles.trackerSplit}>
@@ -184,7 +204,7 @@ function TruckDetails() {
                     <p className={styles.value}>{tracker.speed_kmph} km/h</p>
                   </div>
                   <div className={styles.trackerCard}>
-                    <p className={styles.title}>Heading_Degrees</p>
+                    <p className={styles.title}>Heading</p>
                     <p className={styles.value}>{tracker.heading_degrees}°</p>
                   </div>
                   <div className={styles.trackerCard}>
@@ -208,7 +228,7 @@ function TruckDetails() {
                 </div>
               </div>
 
-              {/* GPS TRACKER DEVICE */}
+              {/* GPS DEVICE */}
               <div className={styles.trackerSection}>
                 <h5>GPS Tracker Device</h5>
                 <div className={styles.trackerInfo}>
@@ -236,8 +256,7 @@ function TruckDetails() {
                       {tracker.gps_fix ? "Yes" : "No"}
                     </p>
                   </div>
-
-                  {/* CALENDAR HERE */}
+                  {/* Calendar */}
                   <div className={styles.trackerCalendar}>
                     <p className={styles.title}>Select Date</p>
                     <DatePicker
@@ -272,7 +291,7 @@ function TruckDetails() {
             </p>
           </div>
           <div className={styles.chartSection}>
-            <h6>Total Distance Traveled</h6>
+            <h6 style={{ color: "white" }}>Total Distance Traveled</h6>
             <ResponsiveContainer width="100%" height="90%">
               <AreaChart data={logs}>
                 <XAxis

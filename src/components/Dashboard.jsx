@@ -22,11 +22,22 @@ function Dashboard() {
         className={`app-content ${
           collapsed ? "content-collapsed" : "content-expanded"
         }`}
+        style={{
+          backgroundColor: "black", // full background black
+          color: "white",
+          minHeight: "100vh", // cover entire screen
+        }}
       >
-        <Container fluid className="py-4">
-          <h2 className="mb-4 text-center">Mining Admin Dashboard</h2>
+        <Container fluid className="py-5 text-center">
+          {/* Large Heading */}
+          <h1 style={{ fontSize: "4rem", fontWeight: "bold" }}>Ops eye</h1>
 
-          <Row className=" mt-3 g-4 justify-content-center">
+          {/* Large Subtitle */}
+          <p style={{ fontSize: "1.5rem", marginTop: "10px" }}>
+            Track your all operations in a click
+          </p>
+
+          <Row className="mt-5 g-4 justify-content-center">
             <Col xs={12} sm={6} md={4}>
               <div
                 className="dashboard-tile"

@@ -1,5 +1,6 @@
 .applayout {
   display: flex;
+  background-color: black;
 }
 
 .appcontent {
@@ -8,7 +9,7 @@
   transition: all 0.3s ease;
   margin: 0;
   padding: 0;
-  background-color: #f5f6fa;
+  background-color: black;
 }
 
 .contentexpanded {
@@ -28,6 +29,7 @@
 
 .head1 {
     margin-left: 2%;
+    color: white;
 }
 
 .profile {
@@ -42,7 +44,7 @@
   position: relative;
   font-size: 1.2rem;
   cursor: pointer;
-  color: black;
+  color: white;
   padding-right: 1rem;
 }
 
@@ -68,7 +70,7 @@
 
 .username {
   font-weight: 500;
-  color: black;
+  color: white;
   cursor: pointer;
 }
 
@@ -78,7 +80,7 @@
 }
 
 .container1, .container2 {
-    background-color: #f5f6fa;
+    background-color: black;
 }
 
 .content {
@@ -88,10 +90,11 @@
   gap: 2rem;
   width: 100%;
   padding: 2%;
+  background-color: black;
 }
 
 .profileCard {
-  background-color: rgb(17, 174, 17);
+  background: linear-gradient(200deg, #057305, #0b6128);
   display: flex;
   gap: 20px;
   width: 32%;
@@ -111,7 +114,7 @@
 }
 
 .card {
-  background: white;
+  background: rgb(7, 51, 16);
   border-radius: 8px;
   padding: 15px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
@@ -125,18 +128,19 @@
 
 .icon {
   font-size: 16px;
-  color: #6c757d;
+  color: white;
 }
 
 .title {
   font-size: 14px;
   font-weight: 700;
-  color: #6c757d;
+  color: white;
   margin: 0;
 }
 
 .value1 {
   padding: 0.5rem;
+  color: white;
 }
 
 .value2 {
@@ -147,7 +151,7 @@
 }
 
 .infoBox {
-  background: white;
+  background: rgb(7, 51, 16);
   width: 32%;
   padding: 20px;
   border-radius: 10px;
@@ -156,12 +160,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  color: white;
 }
 
 .infoBox h4 {
   margin: 0 0 12px;
   font-size: 20px;
-  color: #444;
+  color: white;
 }
 
 .progressCircle {
@@ -192,7 +197,7 @@
 
 .fuel, .weight, .chartSection {
   flex: 1;                
-  background: #fff;
+  background: rgb(7, 51, 16);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
@@ -214,6 +219,7 @@
 
 .icon1 {
   font-size: 50px;
+  color: white;
 }
 
 .para {
@@ -221,6 +227,7 @@
   padding: 1rem;
   margin: 0;
   font-weight: 600;
+  color: white;
 }
 
 .para2 {
@@ -292,7 +299,7 @@
   gap: 1rem;
   padding: 1rem;
   margin: 1rem 0;
-  background: #f5f6fa;
+  background: black;
   border-radius: 16px;
 }
 
@@ -305,10 +312,13 @@
 .trackerCard, .trackerCardWide {
   flex: 1 1 140px;
   padding: 1rem;
-  background: #f8f9fa;
   border-radius: 12px;
   text-align: center;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.trackerCard {
+  background: rgb(7, 51, 16);
 }
 
 .trackerCardWide {
@@ -317,14 +327,14 @@
 
 .title {
   font-size: 0.85rem;
-  color: #666;
+  color: white;
   margin-bottom: 0.4rem;
 }
 
 .value {
   font-size: 1.1rem;
   font-weight: bold;
-  color: #333;
+  color: white;
 }
 
 .trackerSplit {
@@ -338,7 +348,7 @@
 .trackerSection {
   flex: 1;                
   min-width: 300px;     
-  background: #fff;
+  background: black;
   padding: 1rem;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
@@ -347,7 +357,7 @@
 .trackerSection h5 {
   margin-bottom: 1rem;
   font-size: 1rem;
-  color: #444;
+  color: white;
   border-bottom: 1px solid #eee;
   padding-bottom: 0.5rem;
 }
@@ -361,7 +371,7 @@
 .trackerCard, .trackerCardWide {
   flex: 1 1 140px;
   padding: 0.8rem;
-  background: #f8f9fa;
+  background: rgb(7, 51, 16);
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
@@ -374,8 +384,14 @@
 .trackerCalendar {
   flex: 1 1 100%;
   padding: 1rem;
-  background: #fff;
+  background: rgb(7, 51, 16);
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.horizontal {
+  border: none;
+  border-top: 1px solid white;
+  margin: 2px 0;
 }
 

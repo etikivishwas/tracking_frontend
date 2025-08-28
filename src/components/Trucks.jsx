@@ -52,6 +52,7 @@ function Trucks() {
             <span className={styles.username}>Alex Kumar</span>
           </div>
         </div>
+        <hr className={styles.horizontal}/>
         <div className={styles.content}>
           <div className={styles.topRow}>
             <h3>VEHICLES</h3>

@@ -55,6 +55,7 @@ function WorkerDetails() {
             <span className={styles.username}>Alex Kumar</span>
           </div>
         </div>
+        <hr className={styles.horizontal}/>
         <div className={styles.container1}>
             <div>
                 <button onClick={() => navigate(-1)} className={styles.backBtn}>⬅ Back</button>
@@ -101,7 +102,7 @@ function WorkerDetails() {
                             cx="50"
                             cy="50"
                             r="45"
-                            stroke="#007bff"
+                            stroke="green"
                             strokeWidth="10"
                             fill="none"
                             strokeDasharray={2 * Math.PI * 45}
@@ -167,7 +168,7 @@ function WorkerDetails() {
                     <XAxis dataKey="work_date" />
                     <YAxis domain={[0, 12]} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="hours_worked" stroke="#007bff" strokeWidth={2} />
+                    <Line type="monotone" dataKey="hours_worked" stroke="green" strokeWidth={2} />
                 </LineChart>
                 </ResponsiveContainer>
             </div>
