@@ -17,6 +17,20 @@ import {
 } from "recharts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import "leaflet/dist/leaflet.css";
+
+// ✅ React-Leaflet
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+
+// ✅ Fix default Leaflet marker issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+});
 
 function TruckDetails() {
   const { id } = useParams();
@@ -26,6 +40,9 @@ function TruckDetails() {
   const [logs, setLogs] = useState([]);
   const [tracker, setTracker] = useState(null);
   const [location, setLocation] = useState(null);
+
+  // ✅ New: Resolved address from reverse geocoding
+  const [resolvedAddress, setResolvedAddress] = useState(null);
 
   // Calendar
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -60,13 +77,31 @@ function TruckDetails() {
       .catch((err) => console.error(err));
   };
 
+  // ✅ Reverse Geocoding for human-readable address
+  useEffect(() => {
+    if (tracker?.latitude && tracker?.longitude) {
+      axios
+        .get(
+          `https://nominatim.openstreetmap.org/reverse?lat=${tracker.latitude}&lon=${tracker.longitude}&format=json`,
+          { headers: { "User-Agent": "TruckApp/1.0 (contact@example.com)" } }
+        )
+        .then((res) => {
+          if (res.data && res.data.display_name) {
+            setResolvedAddress(res.data.display_name);
+          }
+        })
+        .catch((err) => console.error("Reverse geocoding failed:", err));
+    }
+  }, [tracker]);
+
   if (!truck) return <p>Loading...</p>;
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
   const todayHours = latestLog ? latestLog.hours_worked : 0;
 
-  // ✅ Always prefer location name instead of lat/long
+  // ✅ Prefer resolved address first
   const currentLocation =
+    resolvedAddress ||
     latestLog?.current_location ||
     location?.current_location ||
     "N/A";
@@ -314,6 +349,34 @@ function TruckDetails() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        {/* MAP SECTION */}
+        <div className={styles.container4}>
+          <h6 style={{ color: "white" }}>Live Truck Location</h6>
+          {tracker ? (
+            <div style={{ height: "400px", width: "100%" }}>
+              <MapContainer
+                center={[tracker.latitude, tracker.longitude]}
+                zoom={13}
+                style={{ height: "100%", width: "100%", borderRadius: "10px" }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <Marker position={[tracker.latitude, tracker.longitude]}>
+                  <Popup>
+                    Truck is here 🚚 <br />
+                    {resolvedAddress ||
+                      `${tracker.latitude}, ${tracker.longitude}`}
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            </div>
+          ) : (
+            <p style={{ color: "black" }}>Location not available</p>
+          )}
         </div>
       </div>
     </div>
