@@ -5,9 +5,30 @@ import Sidebar from "./Sidebar";
 import styles from "./MachineDetails.module.css";
 import { FaBell } from "react-icons/fa";
 import { IoLocationOutline } from "react-icons/io5";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import "leaflet/dist/leaflet.css";
+
+// ✅ React-Leaflet
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+
+// ✅ Fix default Leaflet marker issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+});
 
 function MachineDetails() {
   const { id } = useParams();
@@ -17,10 +38,13 @@ function MachineDetails() {
   const [logs, setLogs] = useState([]);
   const [beacon, setBeacon] = useState(null);
 
+  // ✅ Reverse geocoded address
+  const [resolvedAddress, setResolvedAddress] = useState(null);
+
   // Calendar state
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Initial fetch (default latest data)
+  // Initial fetch
   useEffect(() => {
     axios
       .get(`http://localhost:5000/machines/${id}`)
@@ -49,13 +73,31 @@ function MachineDetails() {
       .catch((err) => console.error(err));
   };
 
+  // ✅ Reverse Geocoding for human-readable address
+  useEffect(() => {
+    if (beacon?.latitude && beacon?.longitude) {
+      axios
+        .get(
+          `https://nominatim.openstreetmap.org/reverse?lat=${beacon.latitude}&lon=${beacon.longitude}&format=json`,
+          { headers: { "User-Agent": "MachineApp/1.0 (contact@example.com)" } }
+        )
+        .then((res) => {
+          if (res.data && res.data.display_name) {
+            setResolvedAddress(res.data.display_name);
+          }
+        })
+        .catch((err) => console.error("Reverse geocoding failed:", err));
+    }
+  }, [beacon]);
+
   if (!machine) return <p>Loading...</p>;
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
-  const todayHours = logs.length ? logs[logs.length - 1].hours_worked : 0;
+  const todayHours = latestLog ? latestLog.hours_worked : 0;
 
-  // ✅ Prefer beacon location, else fallback to log location
+  // ✅ Prefer resolved address > beacon > log location
   const currentLocation =
+    resolvedAddress ||
     beacon?.location ||
     (latestLog ? latestLog.current_location : "N/A");
 
@@ -115,7 +157,7 @@ function MachineDetails() {
             </div>
 
             <div className={styles.info}>
-              {/* ✅ Location (Beacon > Logs > N/A) */}
+              {/* ✅ Location */}
               <div className={styles.card}>
                 <div className={styles.row}>
                   <span className={styles.round1}></span>
@@ -135,6 +177,7 @@ function MachineDetails() {
                   {latestLog ? latestLog.state : "N/A"}
                 </p>
               </div>
+
               <div className={styles.card}>
                 <div className={styles.row}>
                   <p className={styles.title}>LATITUDE, LONGITUDE</p>
@@ -149,6 +192,7 @@ function MachineDetails() {
               </div>
             </div>
 
+            {/* Hours worked */}
             <div className={styles.infoBox}>
               <h4>Working Hours Today</h4>
               <div className={styles.progressCircle}>
@@ -181,9 +225,8 @@ function MachineDetails() {
           </div>
         </div>
 
-        {/* Beacon + Chart (side by side) */}
+        {/* Beacon + Chart */}
         <div className={styles.container2}>
-          {/* Left - Beacon */}
           <div className={styles.beaconSection}>
             {beacon ? (
               <>
@@ -229,7 +272,7 @@ function MachineDetails() {
             )}
           </div>
 
-          {/* Right - Chart */}
+          {/* Chart */}
           <div className={styles.chartSection}>
             <h6>Operational Activity</h6>
             <ResponsiveContainer width="100%" height={300}>
@@ -254,6 +297,34 @@ function MachineDetails() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        {/* ✅ MAP SECTION */}
+        <div className={styles.container4}>
+          <h6 style={{ color: "white" }}>Live Machine Location</h6>
+          {beacon?.latitude && beacon?.longitude ? (
+            <div style={{ height: "400px", width: "100%" }}>
+              <MapContainer
+                center={[beacon.latitude, beacon.longitude]}
+                zoom={13}
+                style={{ height: "100%", width: "100%", borderRadius: "10px" }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <Marker position={[beacon.latitude, beacon.longitude]}>
+                  <Popup>
+                    Machine is here 🏗️ <br />
+                    {resolvedAddress ||
+                      `${beacon.latitude}, ${beacon.longitude}`}
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            </div>
+          ) : (
+            <p style={{ color: "black" }}>Location not available</p>
+          )}
         </div>
       </div>
     </div>
