@@ -50,7 +50,7 @@ function TruckDetails() {
   // Initial fetch
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/trucks/${id}`)
+      .get(`http://localhost:5050/api/trucks/${id}`)
       .then((res) => {
         setTruck(res.data.truck);
         setLogs(res.data.logs);
@@ -65,7 +65,7 @@ function TruckDetails() {
     setSelectedDate(date);
     axios
       .get(
-        `http://localhost:5000/api/trucks/${id}?date=${date
+        `http://localhost:5050/api/trucks/${id}?date=${date
           .toISOString()
           .split("T")[0]}`
       )
@@ -131,7 +131,7 @@ function TruckDetails() {
               <FaBell />
             </div>
             <img
-              src="http://localhost:5000/uploads/1.jpg"
+              src="http://localhost:5050/uploads/1.jpg"
               alt="User"
               className={styles.avatar}
             />
@@ -155,7 +155,7 @@ function TruckDetails() {
                 <p>{truck.description}</p>
               </div>
               <img
-                src={`http://localhost:5000${truck.image_url}`}
+                src={`http://localhost:5050${truck.image_url}`}
                 alt={truck.name}
                 className={styles.avatarBig}
               />

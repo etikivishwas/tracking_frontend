@@ -9,7 +9,6 @@
 
 body { background: black; }
 
-/* Sidebar */
 .app-sidebar {
   position: fixed;
   top: 0;
@@ -156,55 +155,3 @@ body { background: black; }
 
 
 
-/* Dashboard Tiles */
-.dashboard-tile {
-  position: relative;
-  height: 280px;
-  border-radius: 16px;
-  background-size: cover;
-  background-position: center top;
-  background-repeat: no-repeat;
-  cursor: pointer;
-  overflow: hidden;
-  transition: transform .3s ease, box-shadow .3s ease;
-}
-
-.dashboard-tile:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 36px rgba(0,0,0,0.28);
-}
-
-/* Colored Overlay + gradient */
-.dashboard-tile::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(13,110,253,0.45);  
-  mix-blend-mode: multiply;           
-  z-index: 1;
-}
-
-.tile-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,.65), rgba(0,0,0,0.1));
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 20px;
-  color: #fff;
-  text-align: left;
-  z-index: 2;
-}
-
-.tile-overlay h3 {
-  margin: 0 0 5px;
-  font-size: 1.6rem;
-  font-weight: 700;
-}
-
-.tile-overlay p {
-  margin: 0;
-  font-size: 1rem;
-  opacity: 0.9;
-}

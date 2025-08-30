@@ -6,6 +6,8 @@ import { FaBell, FaSearch } from "react-icons/fa";
 import Image from "./passport.jpg";
 import "../App.css";
 
+const API_URL = "http://localhost:5050"; // ✅ single base URL
+
 function Machines() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -16,9 +18,9 @@ function Machines() {
   useEffect(() => {
     const fetchMachines = async () => {
       try {
-        const res = await fetch("http://localhost:5000/machines");
+        const res = await fetch(`${API_URL}/machines`);
         const data = await res.json();
-        setMachines(data);
+        setMachines(data || []);
       } catch (error) {
         console.error("Error fetching machines:", error);
       }
@@ -27,11 +29,15 @@ function Machines() {
     fetchMachines();
   }, []);
 
-  // ✅ Filter by search term
+  // ✅ Safe filter by search term
   const filteredMachines = machines.filter(
     (machine) =>
-      machine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      machine.role.toLowerCase().includes(searchTerm.toLowerCase())
+      (machine.name || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      (machine.role || "")
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
   const handleLogout = () => navigate("/");
@@ -64,7 +70,7 @@ function Machines() {
             <span className={styles.username}>Alex Kumar</span>
           </div>
         </div>
-        <hr className={styles.horizontal}/>
+        <hr className={styles.horizontal} />
 
         {/* Content */}
         <div className={styles.content}>
@@ -72,9 +78,9 @@ function Machines() {
             <h3>MACHINES</h3>
             <div className={styles.searchContainer}>
               <FaSearch className={styles.searchIcon} />
-              <input
+                 <input
                 type="text"
-                placeholder="Search machines..."
+                placeholder="Search workers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={styles.searchInput}
@@ -86,13 +92,19 @@ function Machines() {
           <div className={styles.cards}>
             {filteredMachines.map((machine) => (
               <div
-                key={machine.id}
+                key={machine.id || machine._id}
                 className={styles.card}
-                onClick={() => navigate(`/machines/${machine.id}`)}
+                onClick={() =>
+                  navigate(`/machines/${machine.id || machine._id}`)
+                }
               >
                 <div className={styles.profileHeader}>
                   <img
-                    src={`http://localhost:5000${machine.image}`} 
+                    src={
+                      machine.image?.startsWith("http")
+                        ? machine.image
+                        : `${API_URL}${machine.image}`
+                    }
                     alt={machine.name}
                     className={styles.avatar}
                   />
@@ -101,7 +113,9 @@ function Machines() {
                     <span className={styles.role}>{machine.role}</span>
                   </div>
                 </div>
-                <p className={styles.description}>{machine.description}</p>
+                <p className={styles.description}>
+                  {machine.description || "No description available"}
+                </p>
               </div>
             ))}
 

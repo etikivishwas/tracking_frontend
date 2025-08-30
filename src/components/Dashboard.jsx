@@ -1,14 +1,43 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col } from "react-bootstrap";
+import { FiUsers, FiCpu, FiTruck } from "react-icons/fi";
 import Sidebar from "./Sidebar";
-import "../App.css";
+import "../App.css"; 
+import './dashboard.css'
 
 function Dashboard() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = () => navigate("/");
+
+  const tiles = [
+    {
+      key: "workers",
+      title: "Workers",
+      sub: "Track and manage workforce",
+      img: "/image/workers.jpg",
+      icon: <FiUsers />,
+      to: "/humans",
+    },
+    {
+      key: "machines",
+      title: "Machines",
+      sub: "Monitor mining machines",
+      img: "/image/Mining.jpg",
+      icon: <FiCpu />,
+      to: "/machines",
+    },
+    {
+      key: "trucks",
+      title: "Trucks",
+      sub: "Track fleet operations",
+      img: "/image/Trucks.webp",
+      icon: <FiTruck />,
+      to: "/trucks",
+    },
+  ];
 
   return (
     <>
@@ -19,63 +48,34 @@ function Dashboard() {
       />
 
       <main
-        className={`app-content ${
-          collapsed ? "content-collapsed" : "content-expanded"
-        }`}
-        style={{
-          backgroundColor: "black", // full background black
-          color: "white",
-          minHeight: "100vh", // cover entire screen
-        }}
+        className={`app-content ${collapsed ? "content-collapsed" : "content-expanded"} dashboard-root`}
       >
-        <Container fluid className="py-5 text-center">
-          {/* Large Heading */}
-          <h1 style={{ fontSize: "4rem", fontWeight: "bold" }}>Ops eye</h1>
+        <Container fluid className="py-5">
+          {/* Hero */}
+          <header className="dash-hero text-center">
+            <h1 className="dash-title">Ops eye</h1>
+            <p className="dash-sub">Track your operations in one click</p>
+          </header>
 
-          {/* Large Subtitle */}
-          <p style={{ fontSize: "1.5rem", marginTop: "10px" }}>
-            Track your all operations in a click
-          </p>
-
-          <Row className="mt-5 g-4 justify-content-center">
-            <Col xs={12} sm={6} md={4}>
-              <div
-                className="dashboard-tile"
-                onClick={() => navigate("/humans")}
-                style={{ backgroundImage: `url('/image/workers.jpg')` }}
-              >
-                <div className="tile-overlay">
-                  <h3>Workers</h3>
-                  <p>Track and manage workforce</p>
-                </div>
-              </div>
-            </Col>
-
-            <Col xs={12} sm={6} md={4}>
-              <div
-                className="dashboard-tile"
-                onClick={() => navigate("/machines")}
-                style={{ backgroundImage: `url('/image/Mining.jpg')` }}
-              >
-                <div className="tile-overlay">
-                  <h3>Machines</h3>
-                  <p>Monitor mining machines</p>
-                </div>
-              </div>
-            </Col>
-
-            <Col xs={12} sm={6} md={4}>
-              <div
-                className="dashboard-tile"
-                onClick={() => navigate("/trucks")}
-                style={{ backgroundImage: `url('/image/Trucks.webp')` }}
-              >
-                <div className="tile-overlay">
-                  <h3>Trucks</h3>
-                  <p>Track fleet operations</p>
-                </div>
-              </div>
-            </Col>
+          {/* Tiles */}
+          <Row className="mt-4 g-4 justify-content-center">
+            {tiles.map((t) => (
+              <Col key={t.key} xs={12} sm={6} md={4}>
+                <button
+                  className="dashboard-tile improved"
+                  onClick={() => navigate(t.to)}
+                  aria-label={t.title}
+                  style={{ backgroundImage: `url('${t.img}')` }}
+                >
+                  {/* vignette + glass overlay handled in CSS */}
+                  <div className="tile-glass">
+                    <div className="tile-icon">{t.icon}</div>
+                    <h3 className="tile-title">{t.title}</h3>
+                    <p className="tile-sub">{t.sub}</p>
+                  </div>
+                </button>
+              </Col>
+            ))}
           </Row>
         </Container>
       </main>

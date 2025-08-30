@@ -4,176 +4,265 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import styles from "./WorkerDetails.module.css";
 import { FaBell } from "react-icons/fa";
-import { IoLocationOutline,IoCalendarOutline, IoPeopleOutline } from "react-icons/io5";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  IoLocationOutline,
+  IoCalendarOutline,
+  IoPeopleOutline,
+  IoChevronDown,
+  IoChevronUp,
+  IoArrowBack,
+} from "react-icons/io5";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5050";
 
 function WorkerDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [collapsed, setCollapsed] = useState(false);
   const [worker, setWorker] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [openTile, setOpenTile] = useState(null); // "loc" | "days" | "att" | null
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/workers/${id}`)
-      .then(res => {
+    axios
+      .get(`${API_URL}/api/workers/${id}`)
+      .then((res) => {
         setWorker(res.data.worker);
-        setLogs(res.data.logs);
+        setLogs(res.data.logs || []);
       })
-      .catch(err => console.error(err));
+      .catch((err) => console.error(err));
   }, [id]);
 
-  if (!worker) return <p>Loading...</p>;
+  if (!worker) return <div className={styles.loading}>Loading…</div>;
 
   const todayHours = logs.length ? logs[logs.length - 1].hours_worked : 0;
-  const daysWorked = logs.length;
-
+  const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
   const handleLogout = () => navigate("/");
 
   return (
     <div className={styles.applayout}>
-        <Sidebar
-                collapsed={collapsed}
-                onToggle={() => setCollapsed(!collapsed)}
-                onLogout={handleLogout}
-              />
-    <div className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded}`}>
-        <div className={styles.header}>
-          <div className={styles.head1}>
-            <h2>Workers Management</h2>
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed(!collapsed)}
+        onLogout={handleLogout}
+      />
+
+      <main
+        className={`${styles.appcontent} ${
+          collapsed ? styles.contentcollapsed : styles.contentexpanded
+        }`}
+      >
+        {/* Header */}
+        <header className={styles.header}>
+          <div className={styles.leftHead}>
+            <button className={styles.backBtn} onClick={() => navigate(-1)}>
+              <IoArrowBack size={16} />
+              <span>Back</span>
+            </button>
+            <button className={styles.badgeTab}>WORKER INFO</button>
           </div>
-          <div className={styles.profile}>
+
+          <div className={styles.rightHead}>
             <div className={styles.notification}>
               <span className={styles.badge}>5</span>
               <FaBell />
             </div>
             <img
-              src="http://localhost:5000/uploads/1.jpg"
+              src={`${API_URL}/uploads/1.jpg`}
               alt="User"
-              className={styles.avatar}
+              className={styles.topAvatar}
             />
-            <span className={styles.username}>Alex Kumar</span>
+            <span className={styles.username}>Person Name</span>
           </div>
-        </div>
-        <hr className={styles.horizontal}/>
-        <div className={styles.container1}>
-            <div>
-                <button onClick={() => navigate(-1)} className={styles.backBtn}>⬅ Back</button>
+        </header>
+
+        {/* ROW 1: Hero + stat dropdowns */}
+        <section className={styles.rowOne}>
+          {/* Hero profile */}
+          <div className={styles.heroCard}>
+            <div className={styles.heroText}>
+              <h1 className={styles.heroName}>{worker.name}</h1>
+              <span className={styles.rolePill}>{worker.role}</span>
+              <p className={styles.heroDesc}>{worker.description}</p>
             </div>
-            <div className={styles.content}>
-                <div className={styles.profileCard}>
-                    <div>
-                        <h2>{worker.name}</h2>
-                        <span className={styles.role}>{worker.role}</span>
-                        <p>{worker.description}</p>
-                        </div>
-                        <img src={`http://localhost:5000${worker.image_url}`} alt={worker.name} className={styles.avatarBig} />
-                    </div>  
-                <div className={styles.info}>
-                    <div className={styles.card}>
-                        <div className={styles.row}>
-                        <span className={styles.round}></span>
-                        <IoLocationOutline className={styles.icon} />
-                        <p className={styles.title}>CURRENT LOCATION</p>
-                        </div>
-                        <p className={styles.value}>Mining Site A</p>
-                    </div>
-                    <div className={styles.card}>
-                        <div className={styles.row}>
-                        <IoCalendarOutline className={styles.icon} />
-                        <p className={styles.title}>DAYS WORKED</p>
-                        </div>
-                        <p className={styles.value}>28</p>
-                    </div>
-                    <div className={styles.card}>
-                        <div className={styles.row}>
-                        <IoPeopleOutline className={styles.icon} />
-                        <p className={styles.title}>ATTENDANCE</p>
-                        </div>
-                        <p className={styles.value}>{worker.attendance}%</p>
-                    </div>
-                </div>
-                <div className={styles.infoBox}>
-                    <h4>Working Hours Today</h4>
-                    <div className={styles.progressCircle}>
-                        <svg width="100" height="100">
-                        <circle cx="50" cy="50" r="45" stroke="#eee" strokeWidth="10" fill="none" />
-                        <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            stroke="green"
-                            strokeWidth="10"
-                            fill="none"
-                            strokeDasharray={2 * Math.PI * 45}
-                            strokeDashoffset={2 * Math.PI * 45 * (1 - todayHours / 12)}
-                            transform="rotate(-90 50 50)"
-                        />
-                        </svg>
-                        <span className={styles.circleText}>{todayHours} Hrs</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div className={styles.container2}>
-            <div className={styles.details}>
-                <h3>Information</h3>
 
-                <div className={styles.infoRow}>
-                    <span>ID NO :</span>
-                    <span>AP12345679</span>
-                </div>
+            <img
+              src={`${API_URL}${worker.image_url}`}
+              alt={worker.name}
+              className={styles.heroImg}
+            />
+            <div className={styles.heroGlow} />
+          </div>
 
-                <div className={styles.infoRow}>
-                    <span>Gender :</span>
-                    <span>{worker.gender}</span>
-                </div>
-
-                <div className={styles.infoRow}>
-                    <span>Phone Number :</span>
-                    <span>{worker.phone}</span>
-                </div>
-
-                <div className={styles.infoRow}>
-                    <span>Age :</span>
-                    <span>{worker.age} years</span>
-                </div>
-
-                <div className={styles.infoRow}>
-                    <span>Date of Join :</span>
-                    <span>{worker.date_of_join}</span>
-                </div>
-
-                <div className={styles.infoRow}>
-                    <span>Blood Group :</span>
-                    <span>{worker.blood_group}</span>
-                </div>
-
-                <div className={styles.infoRow}>
-                    <span>Height :</span>
-                    <span>{worker.height}</span>
-                </div>
-
-                <div className={styles.infoRow}>
-                    <span>Weight :</span>
-                    <span>{worker.weight}kgs</span>
-                </div>
-
-                <button className={styles.editBtn}>EDIT PROFILE</button>
-            </div>
-            <div className={styles.chartSection}>
-                <h3>Work Logs</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={logs}>
-                    <XAxis dataKey="work_date" />
-                    <YAxis domain={[0, 12]} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="hours_worked" stroke="green" strokeWidth={2} />
-                </LineChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
+          {/* Right stacked collapsible tiles */}
+       <div className={styles.statStack}>
+  {/* Location */}
+  <div
+    className={`${styles.statTile} ${
+      openTile === "loc" ? styles.open : ""
+    }`}
+    onClick={() => toggleTile("loc")}
+  >
+    <div className={styles.tileHeader}>
+      <div className={styles.tileLeft}>
+        <IoLocationOutline className={styles.tileIcon} />
+        <span className={styles.tileTitle}>CURRENT LOCATION</span>
+      </div>
+      {openTile === "loc" ? (
+        <IoChevronUp className={styles.tileChevron} />
+      ) : (
+        <IoChevronDown className={styles.tileChevron} />
+      )}
     </div>
+    {openTile === "loc" && (
+      <div className={styles.tileContent}>Mining Site A</div>
+    )}
+  </div>
+
+  {/* Days worked */}
+  <div
+    className={`${styles.statTile} ${
+      openTile === "days" ? styles.open : ""
+    }`}
+    onClick={() => toggleTile("days")}
+  >
+    <div className={styles.tileHeader}>
+      <div className={styles.tileLeft}>
+        <IoCalendarOutline className={styles.tileIcon} />
+        <span className={styles.tileTitle}>DAYS WORKED</span>
+      </div>
+      {openTile === "days" ? (
+        <IoChevronUp className={styles.tileChevron} />
+      ) : (
+        <IoChevronDown className={styles.tileChevron} />
+      )}
+    </div>
+    {openTile === "days" && (
+      <div className={styles.tileContent}>28 Days</div>
+    )}
+  </div>
+
+  {/* Attendance */}
+  <div
+    className={`${styles.statTile} ${
+      openTile === "att" ? styles.open : ""
+    }`}
+    onClick={() => toggleTile("att")}
+  >
+    <div className={styles.tileHeader}>
+      <div className={styles.tileLeft}>
+        <IoPeopleOutline className={styles.tileIcon} />
+        <span className={styles.tileTitle}>ATTENDANCE</span>
+      </div>
+      {openTile === "att" ? (
+        <IoChevronUp className={styles.tileChevron} />
+      ) : (
+        <IoChevronDown className={styles.tileChevron} />
+      )}
+    </div>
+    {openTile === "att" && (
+      <div className={styles.tileContent}>{worker.attendance}%</div>
+    )}
+  </div>
+</div>
+
+        </section>
+
+        {/* ROW 2: Info / Today Actives / Hours */}
+        <section className={styles.rowTwo}>
+          {/* Information */}
+          <div className={styles.infoCard}>
+            <h3>Information</h3>
+
+            <div className={styles.infoGrid}>
+              <div>
+                <span>ID NO :</span>
+                <span>{worker.id || worker._id || "AP12345679"}</span>
+              </div>
+              <div>
+                <span>Gender :</span>
+                <span>{worker.gender}</span>
+              </div>
+              <div>
+                <span>Phone Number :</span>
+                <span>{worker.phone}</span>
+              </div>
+              <div>
+                <span>Age :</span>
+                <span>{worker.age} years</span>
+              </div>
+              <div>
+                <span>Date of Join :</span>
+                <span>
+                  {worker.date_of_join
+                    ? new Date(worker.date_of_join).toLocaleDateString()
+                    : "-"}
+                </span>
+              </div>
+              <div>
+                <span>Blood Group :</span>
+                <span>{worker.blood_group}</span>
+              </div>
+              <div>
+                <span>Height :</span>
+                <span>{worker.height} cm</span>
+              </div>
+              <div>
+                <span>Weight :</span>
+                <span>{worker.weight} kgs</span>
+              </div>
+            </div>
+
+            <button className={styles.editBtn}>EDIT PROFILE</button>
+          </div>
+
+          {/* Today Actives chart */}
+          <div className={styles.chartCard}>
+            <h3>TODAY ACTIVES</h3>
+            <div className={styles.chartWrap}>
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={logs}>
+                  <XAxis dataKey="work_date" />
+                  <YAxis domain={[0, 12]} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="hours_worked"
+                    stroke="#21e065"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Working hours today */}
+          <div className={styles.hoursCard}>
+            <h3>WORKING HOURS TODAY</h3>
+            <div className={styles.rings}>
+              <div className={styles.ringA} />
+              <div className={styles.ringB} />
+              <div className={styles.ringC} />
+              <div className={styles.hoursCenter}>
+                <div className={styles.hoursNumber}>
+                  {String(todayHours).padStart(2, "0")}
+                </div>
+                <div className={styles.hoursLabel}>HOURS</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

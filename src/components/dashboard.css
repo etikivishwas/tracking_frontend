@@ -1,0 +1,145 @@
+.dashboard-root {
+  background: #000;
+  color: #fff;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-hero {
+  max-width: 980px;
+  margin: 0 auto;
+  padding-inline: 16px;
+}
+
+.dash-title {
+  font-size: clamp(2.2rem, 4.2vw, 4rem);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  position: relative;
+  display: inline-block;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+}
+
+.dash-title::after {
+  content: "";
+  display: block;
+  height: 4px;
+  width: 90%;
+  margin: 10px auto 0;
+  background: linear-gradient(90deg, #00c853, rgba(0, 200, 83, 0.22));
+  border-radius: 999px;
+}
+
+
+.dash-sub {
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  color: #d9d9d9;
+  margin-bottom: 0;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes floatBg {
+  from {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(2%, 1%, 0) scale(1.05);
+  }
+}
+
+.dashboard-tile {
+  width: 100%;
+  aspect-ratio: 16/10;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  display: block;
+  text-align: left;
+  background-position: center;
+  background-size: cover;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Card base styles */
+.dashboard-tile.improved {
+  outline: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: translateZ(0);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    outline-color 220ms ease,
+    filter 220ms ease;
+}
+
+/* Vignette for better text contrast */
+.dashboard-tile.improved::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0.05) 0%,
+      rgba(0, 0, 0, 0.55) 65%,
+      rgba(0, 0, 0, 0.88) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ================================
+   Text + icons inside card (no glass)
+================================== */
+.tile-glass {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  padding: 0;
+  /* remove background box */
+  background: transparent;
+  /* no glass panel */
+  border: none;
+  box-shadow: none;
+  z-index: 1;
+}
+
+.tile-icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+  color: #00c853;
+  /* brand accent */
+}
+
+.tile-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  /* ensures readability */
+}
+
+.tile-sub {
+  margin: 2px 0 0;
+  color: #e0e0e0;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Hover interaction */
+.dashboard-tile.improved:hover,
+.dashboard-tile.improved:focus-visible {
+  transform: translateY(-4px);
+  outline-color: rgba(0, 200, 83, 0.5);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(0, 200, 83, 0.22);
+  filter: saturate(1.08);
+}

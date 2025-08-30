@@ -4,7 +4,14 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import styles from "./MachineDetails.module.css";
 import { FaBell } from "react-icons/fa";
-import { IoLocationOutline } from "react-icons/io5";
+import {
+  IoLocationOutline,
+  IoCalendarOutline,
+  IoMapOutline,
+  IoChevronDown,
+  IoChevronUp,
+  IoArrowBack,
+} from "react-icons/io5";
 import {
   AreaChart,
   Area,
@@ -17,11 +24,9 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "leaflet/dist/leaflet.css";
 
-// ✅ React-Leaflet
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
-// ✅ Fix default Leaflet marker issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -30,6 +35,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5050";
+
 function MachineDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -37,43 +44,32 @@ function MachineDetails() {
   const [machine, setMachine] = useState(null);
   const [logs, setLogs] = useState([]);
   const [beacon, setBeacon] = useState(null);
-
-  // ✅ Reverse geocoded address
   const [resolvedAddress, setResolvedAddress] = useState(null);
-
-  // Calendar state
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [openTile, setOpenTile] = useState(null);
 
-  // Initial fetch
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/machines/${id}`)
+      .get(`${API_URL}/machines/${id}`)
       .then((res) => {
         setMachine(res.data.machine);
-        setLogs(res.data.logs);
+        setLogs(res.data.logs || []);
         setBeacon(res.data.beacon);
       })
       .catch((err) => console.error(err));
   }, [id]);
 
-  // Handle calendar date change
   const handleDateChange = (date) => {
     setSelectedDate(date);
-
     axios
-      .get(
-        `http://localhost:5000/machines/${id}?date=${
-          date.toISOString().split("T")[0]
-        }`
-      )
+      .get(`${API_URL}/machines/${id}?date=${date.toISOString().split("T")[0]}`)
       .then((res) => {
-        setLogs(res.data.logs);
+        setLogs(res.data.logs || []);
         setBeacon(res.data.beacon);
       })
       .catch((err) => console.error(err));
   };
 
-  // ✅ Reverse Geocoding for human-readable address
   useEffect(() => {
     if (beacon?.latitude && beacon?.longitude) {
       axios
@@ -82,25 +78,22 @@ function MachineDetails() {
           { headers: { "User-Agent": "MachineApp/1.0 (contact@example.com)" } }
         )
         .then((res) => {
-          if (res.data && res.data.display_name) {
-            setResolvedAddress(res.data.display_name);
-          }
+          if (res.data?.display_name) setResolvedAddress(res.data.display_name);
         })
         .catch((err) => console.error("Reverse geocoding failed:", err));
     }
   }, [beacon]);
 
-  if (!machine) return <p>Loading...</p>;
+  if (!machine) return <div className={styles.loading}>Loading…</div>;
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
   const todayHours = latestLog ? latestLog.hours_worked : 0;
-
-  // ✅ Prefer resolved address > beacon > log location
   const currentLocation =
     resolvedAddress ||
     beacon?.location ||
     (latestLog ? latestLog.current_location : "N/A");
 
+  const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
   const handleLogout = () => navigate("/");
 
   return (
@@ -110,155 +103,110 @@ function MachineDetails() {
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
       />
-      <div
-        className={`${styles.appcontent} ${
-          collapsed ? styles.contentcollapsed : styles.contentexpanded
-        }`}
+      <main
+        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
+          }`}
       >
         {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.head1}>
-            <h2>Machine Management</h2>
+        {/* Header */}
+        <header className={styles.header}>
+          <div className={styles.leftHead}>
+            <button className={styles.backBtn} onClick={() => navigate(-1)}>
+              <IoArrowBack size={16} />
+              <span>Back</span>
+            </button>
+
+            {/* 🔥 MACHINE INFO badge inside header */}
+            <button className={styles.badgeTab}>MACHINE INFO</button>
           </div>
-          <div className={styles.profile}>
+
+          <div className={styles.rightHead}>
             <div className={styles.notification}>
               <span className={styles.badge}>5</span>
               <FaBell />
             </div>
             <img
-              src="http://localhost:5000/uploads/1.jpg"
+              src={`${API_URL}/uploads/1.jpg`}
               alt="User"
-              className={styles.avatar}
+              className={styles.topAvatar}
             />
             <span className={styles.username}>Alex Kumar</span>
           </div>
-        </div>
-        <hr className={styles.horizontal} />
+        </header>
 
-        {/* Machine details */}
-        <div className={styles.container1}>
-          <div>
-            <button onClick={() => navigate(-1)} className={styles.backBtn}>
-              ⬅ Back
-            </button>
+        {/* ROW 1: Hero + Stat dropdowns */}
+        <section className={styles.rowOne}>
+          <div className={styles.heroCard}>
+            <div className={styles.heroText}>
+              <h1 className={styles.heroName}>{machine.name}</h1>
+              <span className={styles.rolePill}>{machine.role}</span>
+              <p className={styles.heroDesc}>{machine.description}</p>
+            </div>
+            <img
+              src={`${API_URL}${machine.image}`}
+              alt={machine.name}
+              className={styles.heroImg}
+            />
+            <div className={styles.heroGlow} />
           </div>
-          <div className={styles.content}>
-            <div className={styles.profileCard}>
-              <div>
-                <h3>{machine.name}</h3>
-                <span className={styles.role}>{machine.role}</span>
-                <p>{machine.description}</p>
+
+          <div className={styles.statStack}>
+            <div className={styles.statTile} onClick={() => toggleTile("loc")}>
+              <div className={styles.tileLeft}>
+                <IoLocationOutline className={styles.tileIcon} />
+                <span className={styles.tileTitle}>CURRENT LOCATION</span>
               </div>
-              <img
-                src={`http://localhost:5000${machine.image}`}
-                alt={machine.name}
-                className={styles.avatarBig}
-              />
+              {openTile === "loc" ? <IoChevronUp /> : <IoChevronDown />}
             </div>
+            {openTile === "loc" && (
+              <div className={styles.tileContent}>{currentLocation}</div>
+            )}
 
-            <div className={styles.info}>
-              {/* ✅ Location */}
-              <div className={styles.card}>
-                <div className={styles.row}>
-                  <span className={styles.round1}></span>
-                  <IoLocationOutline className={styles.icon} />
-                  <p className={styles.title}>CURRENT LOCATION</p>
-                </div>
-                <p className={styles.value1}>{currentLocation}</p>
+            <div className={styles.statTile} onClick={() => toggleTile("cond")}>
+              <div className={styles.tileLeft}>
+                <IoCalendarOutline className={styles.tileIcon} />
+                <span className={styles.tileTitle}>CONDITION</span>
               </div>
-
-              {/* Condition */}
-              <div className={styles.card}>
-                <div className={styles.row}>
-                  <span className={styles.round2}></span>
-                  <p className={styles.title}>CONDITION</p>
-                </div>
-                <p className={styles.value2}>
-                  {latestLog ? latestLog.state : "N/A"}
-                </p>
-              </div>
-
-              <div className={styles.card}>
-                <div className={styles.row}>
-                  <p className={styles.title}>LATITUDE, LONGITUDE</p>
-                </div>
-                <p className={styles.value3}>
-                  {beacon?.latitude && beacon?.longitude
-                    ? `${beacon.latitude}, ${beacon.longitude}`
-                    : latestLog?.latitude && latestLog?.longitude
-                    ? `${latestLog.latitude}, ${latestLog.longitude}`
-                    : "N/A"}
-                </p>
-              </div>
+              {openTile === "cond" ? <IoChevronUp /> : <IoChevronDown />}
             </div>
-
-            {/* Hours worked */}
-            <div className={styles.infoBox}>
-              <h4>Working Hours Today</h4>
-              <div className={styles.progressCircle}>
-                <svg width="100" height="100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="#eee"
-                    strokeWidth="10"
-                    fill="none"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="green"
-                    strokeWidth="10"
-                    fill="none"
-                    strokeDasharray={2 * Math.PI * 45}
-                    strokeDashoffset={
-                      2 * Math.PI * 45 * (1 - todayHours / 15)
-                    }
-                    transform="rotate(-90 50 50)"
-                  />
-                </svg>
-                <span className={styles.circleText}>{todayHours} Hrs</span>
+            {openTile === "cond" && (
+              <div className={styles.tileContent}>
+                {latestLog ? latestLog.state : "N/A"}
               </div>
+            )}
+
+            <div
+              className={styles.statTile}
+              onClick={() => toggleTile("coords")}
+            >
+              <div className={styles.tileLeft}>
+                <IoMapOutline className={styles.tileIcon} />
+                <span className={styles.tileTitle}>LAT, LONG</span>
+              </div>
+              {openTile === "coords" ? <IoChevronUp /> : <IoChevronDown />}
             </div>
+            {openTile === "coords" && (
+              <div className={styles.tileContent}>
+                {beacon?.latitude && beacon?.longitude
+                  ? `${beacon.latitude}, ${beacon.longitude}`
+                  : "N/A"}
+              </div>
+            )}
           </div>
-        </div>
+        </section>
 
-        {/* Beacon + Chart */}
-        <div className={styles.container2}>
-          <div className={styles.beaconSection}>
+        {/* ROW 2: Beacon / Chart / Hours */}
+        <section className={styles.rowTwo}>
+          <div className={styles.infoCard}>
+            <h3>Beacon Info</h3>
             {beacon ? (
-              <>
-                <div className={styles.beaconCard}>
-                  <p className={styles.para}>Beacon ID</p>
-                  <p className={styles.para2}>{beacon.deviceId}</p>
-                </div>
-                <div className={styles.beaconCard}>
-                  <p className={styles.para}>Timestamp</p>
-                  <p className={styles.para2}>{beacon.timestamp}</p>
-                </div>
-                <div className={styles.beaconCard}>
-                  <p className={styles.para}>Accelerometer (X,Y,Z)</p>
-                  <p className={styles.para2}>
-                    {beacon.accel_x}, {beacon.accel_y}, {beacon.accel_z}
-                  </p>
-                </div>
-                <div className={styles.beaconCard}>
-                  <p className={styles.para}>Signal / Battery</p>
-                  <p className={styles.para2}>
-                    RSSI: {beacon.rssi} | TxPower: {beacon.txPower} | Battery:{" "}
-                    {beacon.batteryLevel}%
-                  </p>
-                </div>
-                <div className={styles.beaconCard}>
-                  <p className={styles.para}>Status</p>
-                  <p className={styles.para2}>{beacon.status}</p>
-                </div>
-
-                {/* Calendar */}
-                <div className={styles.trackerCalendar}>
-                  <p className={styles.title}>Select Date</p>
+              <div className={styles.infoGrid}>
+                <div><span>Beacon ID:</span> <span>{beacon.deviceId}</span></div>
+                <div><span>Timestamp:</span> <span>{beacon.timestamp}</span></div>
+                <div><span>Accelerometer:</span> <span>{beacon.accel_x}, {beacon.accel_y}, {beacon.accel_z}</span></div>
+                <div><span>Signal/Battery:</span> <span>RSSI {beacon.rssi} | Tx {beacon.txPower} | Battery {beacon.batteryLevel}%</span></div>
+                <div><span>Status:</span> <span>{beacon.status}</span></div>
+                <div><span>Select Date:</span>
                   <DatePicker
                     selected={selectedDate}
                     onChange={handleDateChange}
@@ -266,67 +214,69 @@ function MachineDetails() {
                     className={styles.datePicker}
                   />
                 </div>
-              </>
+              </div>
             ) : (
               <p>No beacon data available</p>
             )}
           </div>
 
-          {/* Chart */}
-          <div className={styles.chartSection}>
-            <h6>Operational Activity</h6>
-            <ResponsiveContainer width="100%" height={300}>
+          <div className={styles.chartCard}>
+            <h3>Operational Activity</h3>
+            <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={logs}>
-                <XAxis
-                  dataKey="log_date"
-                  tickFormatter={(time) =>
-                    new Date(time).toLocaleDateString("en-US", {
-                      weekday: "short",
-                    })
-                  }
-                />
+                <XAxis dataKey="log_date" />
                 <YAxis />
                 <Tooltip />
                 <Area
                   type="monotone"
                   dataKey="hours_worked"
-                  stroke="green"
+                  stroke="#21e065"
                   fill="rgba(21, 232, 32, 1)"
                   fillOpacity={0.3}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
 
-        {/* ✅ MAP SECTION */}
-        <div className={styles.container4}>
-          <h6 style={{ color: "white" }}>Live Machine Location</h6>
-          {beacon?.latitude && beacon?.longitude ? (
-            <div style={{ height: "400px", width: "100%" }}>
-              <MapContainer
-                center={[beacon.latitude, beacon.longitude]}
-                zoom={13}
-                style={{ height: "100%", width: "100%", borderRadius: "10px" }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <Marker position={[beacon.latitude, beacon.longitude]}>
-                  <Popup>
-                    Machine is here 🏗️ <br />
-                    {resolvedAddress ||
-                      `${beacon.latitude}, ${beacon.longitude}`}
-                  </Popup>
-                </Marker>
-              </MapContainer>
+          <div className={styles.hoursCard}>
+            <h3>WORKING HOURS TODAY</h3>
+            <div className={styles.rings}>
+              <div className={styles.ringA} />
+              <div className={styles.ringB} />
+              <div className={styles.ringC} />
+              <div className={styles.hoursCenter}>
+                <div className={styles.hoursNumber}>
+                  {String(todayHours).padStart(2, "0")}
+                </div>
+                <div className={styles.hoursLabel}>HOURS</div>
+              </div>
             </div>
+          </div>
+        </section>
+
+        {/* ROW 3: Map */}
+        <section className={styles.rowThree}>
+          <h3>Live Machine Location</h3>
+          {beacon?.latitude && beacon?.longitude ? (
+            <MapContainer
+              center={[beacon.latitude, beacon.longitude]}
+              zoom={13}
+              style={{ height: "400px", width: "100%", borderRadius: "12px" }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <Marker position={[beacon.latitude, beacon.longitude]}>
+                <Popup>
+                  Machine is here 🏗️ <br />
+                  {resolvedAddress ||
+                    `${beacon.latitude}, ${beacon.longitude}`}
+                </Popup>
+              </Marker>
+            </MapContainer>
           ) : (
-            <p style={{ color: "black" }}>Location not available</p>
+            <p>No location available</p>
           )}
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

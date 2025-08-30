@@ -14,7 +14,7 @@ function Trucks() {
   const [truck, setTruck] = useState([]);
 
   useEffect(() => {
-      axios.get("http://localhost:5000/api/trucks")
+      axios.get("http://localhost:5050/api/trucks")
         .then(res => setTruck(res.data))
         .catch(err => console.error(err));
     }, []);
@@ -72,11 +72,11 @@ function Trucks() {
               <div 
                 key={truck.id} 
                 className={styles.card}
-                onClick={() => navigate(`/trucks/${truck.id}`)} // 🔥 Navigate to TruckDetails
+                onClick={() => navigate(`/trucks/${truck.id}`)} 
               >
                 <div className={styles.profileHeader}>
                   <img
-                    src={`http://localhost:5000${truck.image_url}`}
+                    src={`http://localhost:5050${truck.image_url}`}
                     alt={truck.name}
                     className={styles.avatar}
                   />

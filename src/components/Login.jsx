@@ -4,17 +4,19 @@ import styles from "./Login.module.css";
 import axios from "axios";
 
 function Login({ setIsAuthenticated }) {
-  const [email, setEmail] = useState("");   // changed username -> email
+  const [email, setEmail] = useState(""); // login with email
   const [password, setPassword] = useState("");
+  const [staySignedIn, setStaySignedIn] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post("http://localhost:5050/api/auth/login", {
         email,
         password,
+        staySignedIn,
       });
 
       if (res.data.success) {
@@ -30,36 +32,44 @@ function Login({ setIsAuthenticated }) {
   };
 
   return (
-    <div className="container vh-100 d-flex justify-content-center align-items-center">
-      <div className="card p-4 shadow" style={{ width: "350px" }}>
-        <div className={styles.header}>
-          <p className={styles.para1}>Ops eye</p>
-          <p className={styles.para2}>Mining Management System</p>
+    <div className={styles.container}>
+      <div className={styles.loginCard}>
+        <div className={styles.tabHeader}>
+          <span className={styles.activeTab}>USER SIGN IN</span>
         </div>
-        <h3 className="text-center mb-4">Admin Login</h3>
-        <form onSubmit={handleLogin}>
-          <div className="mb-3">
+
+        <form onSubmit={handleLogin} className={styles.form}>
+          <input
+            type="text"
+            placeholder="User name / Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={styles.input}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={styles.input}
+          />
+
+          <div className={styles.checkboxRow}>
             <input
-              type="text"
-              className="form-control"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="checkbox"
+              id="staySignedIn"
+              checked={staySignedIn}
+              onChange={(e) => setStaySignedIn(e.target.checked)}
             />
+            <label htmlFor="staySignedIn">Stay Signed in</label>
           </div>
-          <div className="mb-3">
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="btn btn-primary w-100">
-            Login
+
+          <button type="submit" className={styles.signInBtn}>
+            SIGN IN
           </button>
         </form>
+
+        <p className={styles.forgot}>Forgot Password?</p>
       </div>
     </div>
   );

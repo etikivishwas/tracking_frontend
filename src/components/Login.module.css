@@ -1,23 +1,74 @@
-.card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-.header {
-    background-color: #0d6efd;
-    color: white;
-    padding: 10px;
-    text-align: center;
-    border-radius: 10px;
-    width: 80%;
-    margin: 0 auto;
-    margin-bottom: 15px;
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f1d1d1; /* light background */
 }
 
-.para1 {
-    padding: 0;
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 700;
+.loginCard {
+  background: #2c2c2c;
+  padding: 30px;
+  border-radius: 10px;
+  width: 400px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  color: #fff;
+  text-align: center;
+}
+
+.tabHeader {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.activeTab {
+  font-weight: 600;
+  color: #00c853;
+  border-bottom: 2px solid #00c853;
+  padding-bottom: 5px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input {
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #ddd;
+}
+
+.signInBtn {
+  background: #00c853;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.signInBtn:hover {
+  background: #00b84a;
+}
+
+.forgot {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #bbb;
+  cursor: pointer;
 }

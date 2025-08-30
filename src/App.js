@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./components/Login.jsx";
@@ -11,20 +11,25 @@ import TruckDetails from "./components/TruckDetails";
 import MachineDetails from './components/MachineDetails.jsx'
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => localStorage.getItem("isAuthenticated") === "true"
+  );
 
-
+  // Sync to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("isAuthenticated", isAuthenticated);
+  }, [isAuthenticated]);
 
   return (
     <Router>
       <Routes>
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
-            isAuthenticated ? 
-            <Navigate to="/dashboard" /> : 
-            <Login setIsAuthenticated={setIsAuthenticated} />
-          } 
+            isAuthenticated ?
+              <Navigate to="/dashboard" /> :
+              <Login setIsAuthenticated={setIsAuthenticated} />
+          }
         />
         <Route
           path="/dashboard"
