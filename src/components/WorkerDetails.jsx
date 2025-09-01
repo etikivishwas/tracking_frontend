@@ -21,6 +21,20 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// ✅ Leaflet imports
+import "leaflet/dist/leaflet.css";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+
+// ✅ Fix default Leaflet marker issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+});
+
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5050";
 
 function WorkerDetails() {
@@ -30,7 +44,8 @@ function WorkerDetails() {
   const [collapsed, setCollapsed] = useState(false);
   const [worker, setWorker] = useState(null);
   const [logs, setLogs] = useState([]);
-  const [openTile, setOpenTile] = useState(null); // "loc" | "days" | "att" | null
+  const [openTile, setOpenTile] = useState(null);
+  const [resolvedAddress, setResolvedAddress] = useState(null);
 
   useEffect(() => {
     axios
@@ -41,6 +56,21 @@ function WorkerDetails() {
       })
       .catch((err) => console.error(err));
   }, [id]);
+
+  // ✅ Reverse geocoding if worker has lat/lon
+  useEffect(() => {
+    if (worker?.latitude && worker?.longitude) {
+      axios
+        .get(
+          `https://nominatim.openstreetmap.org/reverse?lat=${worker.latitude}&lon=${worker.longitude}&format=json`,
+          { headers: { "User-Agent": "WorkerApp/1.0 (contact@example.com)" } }
+        )
+        .then((res) => {
+          if (res.data?.display_name) setResolvedAddress(res.data.display_name);
+        })
+        .catch((err) => console.error("Reverse geocoding failed:", err));
+    }
+  }, [worker]);
 
   if (!worker) return <div className={styles.loading}>Loading…</div>;
 
@@ -104,77 +134,81 @@ function WorkerDetails() {
           </div>
 
           {/* Right stacked collapsible tiles */}
-       <div className={styles.statStack}>
-  {/* Location */}
-  <div
-    className={`${styles.statTile} ${
-      openTile === "loc" ? styles.open : ""
-    }`}
-    onClick={() => toggleTile("loc")}
-  >
-    <div className={styles.tileHeader}>
-      <div className={styles.tileLeft}>
-        <IoLocationOutline className={styles.tileIcon} />
-        <span className={styles.tileTitle}>CURRENT LOCATION</span>
-      </div>
-      {openTile === "loc" ? (
-        <IoChevronUp className={styles.tileChevron} />
-      ) : (
-        <IoChevronDown className={styles.tileChevron} />
-      )}
-    </div>
-    {openTile === "loc" && (
-      <div className={styles.tileContent}>Mining Site A</div>
-    )}
-  </div>
+          <div className={styles.statStack}>
+            {/* Location */}
+            <div
+              className={`${styles.statTile} ${
+                openTile === "loc" ? styles.open : ""
+              }`}
+              onClick={() => toggleTile("loc")}
+            >
+              <div className={styles.tileHeader}>
+                <div className={styles.tileLeft}>
+                  <IoLocationOutline className={styles.tileIcon} />
+                  <span className={styles.tileTitle}>CURRENT LOCATION</span>
+                </div>
+                {openTile === "loc" ? (
+                  <IoChevronUp className={styles.tileChevron} />
+                ) : (
+                  <IoChevronDown className={styles.tileChevron} />
+                )}
+              </div>
+              {openTile === "loc" && (
+                <div className={styles.tileContent}>
+                  {resolvedAddress ||
+                    (worker.latitude && worker.longitude
+                      ? `${worker.latitude}, ${worker.longitude}`
+                      : "Unknown")}
+                </div>
+              )}
+            </div>
 
-  {/* Days worked */}
-  <div
-    className={`${styles.statTile} ${
-      openTile === "days" ? styles.open : ""
-    }`}
-    onClick={() => toggleTile("days")}
-  >
-    <div className={styles.tileHeader}>
-      <div className={styles.tileLeft}>
-        <IoCalendarOutline className={styles.tileIcon} />
-        <span className={styles.tileTitle}>DAYS WORKED</span>
-      </div>
-      {openTile === "days" ? (
-        <IoChevronUp className={styles.tileChevron} />
-      ) : (
-        <IoChevronDown className={styles.tileChevron} />
-      )}
-    </div>
-    {openTile === "days" && (
-      <div className={styles.tileContent}>28 Days</div>
-    )}
-  </div>
+            {/* Days worked */}
+            <div
+              className={`${styles.statTile} ${
+                openTile === "days" ? styles.open : ""
+              }`}
+              onClick={() => toggleTile("days")}
+            >
+              <div className={styles.tileHeader}>
+                <div className={styles.tileLeft}>
+                  <IoCalendarOutline className={styles.tileIcon} />
+                  <span className={styles.tileTitle}>DAYS WORKED</span>
+                </div>
+                {openTile === "days" ? (
+                  <IoChevronUp className={styles.tileChevron} />
+                ) : (
+                  <IoChevronDown className={styles.tileChevron} />
+                )}
+              </div>
+              {openTile === "days" && (
+                <div className={styles.tileContent}>28 Days</div>
+              )}
+            </div>
 
-  {/* Attendance */}
-  <div
-    className={`${styles.statTile} ${
-      openTile === "att" ? styles.open : ""
-    }`}
-    onClick={() => toggleTile("att")}
-  >
-    <div className={styles.tileHeader}>
-      <div className={styles.tileLeft}>
-        <IoPeopleOutline className={styles.tileIcon} />
-        <span className={styles.tileTitle}>ATTENDANCE</span>
-      </div>
-      {openTile === "att" ? (
-        <IoChevronUp className={styles.tileChevron} />
-      ) : (
-        <IoChevronDown className={styles.tileChevron} />
-      )}
-    </div>
-    {openTile === "att" && (
-      <div className={styles.tileContent}>{worker.attendance}%</div>
-    )}
-  </div>
-</div>
-
+            {/* Attendance */}
+            <div
+              className={`${styles.statTile} ${
+                openTile === "att" ? styles.open : ""
+              }`}
+              onClick={() => toggleTile("att")}
+            >
+              <div className={styles.tileHeader}>
+                <div className={styles.tileLeft}>
+                  <IoPeopleOutline className={styles.tileIcon} />
+                  <span className={styles.tileTitle}>ATTENDANCE</span>
+                </div>
+                {openTile === "att" ? (
+                  <IoChevronUp className={styles.tileChevron} />
+                ) : (
+                  <IoChevronDown className={styles.tileChevron} />
+                )}
+              </div>
+              {openTile === "att" && (
+                <div className={styles.tileContent}>{worker.attendance}%</div>
+              )}
+            </div>
+          </div>
         </section>
 
         {/* ROW 2: Info / Today Actives / Hours */}
@@ -182,7 +216,6 @@ function WorkerDetails() {
           {/* Information */}
           <div className={styles.infoCard}>
             <h3>Information</h3>
-
             <div className={styles.infoGrid}>
               <div>
                 <span>ID NO :</span>
@@ -221,7 +254,6 @@ function WorkerDetails() {
                 <span>{worker.weight} kgs</span>
               </div>
             </div>
-
             <button className={styles.editBtn}>EDIT PROFILE</button>
           </div>
 
@@ -261,6 +293,29 @@ function WorkerDetails() {
               </div>
             </div>
           </div>
+        </section>
+
+        {/* ✅ ROW 3: Map */}
+        <section className={styles.rowThree}>
+          <h3>Live Worker Location</h3>
+          {worker?.latitude && worker?.longitude ? (
+            <MapContainer
+              center={[worker.latitude, worker.longitude]}
+              zoom={13}
+              style={{ height: "400px", width: "100%", borderRadius: "12px" }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <Marker position={[worker.latitude, worker.longitude]}>
+                <Popup>
+                  {worker.name} is here 👷 <br />
+                  {resolvedAddress ||
+                    `${worker.latitude}, ${worker.longitude}`}
+                </Popup>
+              </Marker>
+            </MapContainer>
+          ) : (
+            <p>No location available</p>
+          )}
         </section>
       </main>
     </div>

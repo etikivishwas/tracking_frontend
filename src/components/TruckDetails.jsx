@@ -24,11 +24,6 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "leaflet/dist/leaflet.css";
-<<<<<<< HEAD
-
-// ✅ React-Leaflet
-=======
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
 import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
 import L from "leaflet";
 
@@ -83,49 +78,10 @@ function TruckDetails() {
   const [logs, setLogs] = useState([]);
   const [tracker, setTracker] = useState(null);
   const [location, setLocation] = useState(null);
-<<<<<<< HEAD
-
-  // ✅ Reverse geocoded address
-=======
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
   const [resolvedAddress, setResolvedAddress] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [openTile, setOpenTile] = useState(null); // "loc" | "cond" | null
 
-  // quarry boundary polygon
-  const quarryBoundary = [
-    [15.5850243, 79.82235724],
-    [15.58493572, 79.82376058],
-    [15.58523844, 79.82386164],
-    [15.58512688, 79.8248885],
-    [15.58481244, 79.8248284],
-    [15.58423277, 79.8250924],
-    [15.58465594, 79.8279689],
-    [15.58441269, 79.8313344],
-    [15.58539833, 79.83096934],
-    [15.58628035, 79.82197034],
-  ];
-
-  function isPointInsidePolygon(point, polygon) {
-    const [lat, lon] = point;
-    const x = lon;
-    const y = lat;
-    let inside = false;
-    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      const [plat, plon] = polygon[i];
-      const [qlat, qlon] = polygon[j];
-      const xi = plon,
-        yi = plat;
-      const xj = qlon,
-        yj = qlat;
-      const intersect =
-        (yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-      if (intersect) inside = !inside;
-    }
-    return inside;
-  }
-
-<<<<<<< HEAD
   // ✅ Quarry boundary polygon in [lat, lng] for Leaflet
   const quarryBoundaryLatLng = [
     [15.585024, 79.822357],
@@ -144,8 +100,6 @@ function TruckDetails() {
   // -------------------
   // API Fetch
   // -------------------
-=======
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
   useEffect(() => {
     axios
       .get(`${API_URL}/api/trucks/${id}`)
@@ -161,11 +115,7 @@ function TruckDetails() {
   const handleDateChange = (date) => {
     setSelectedDate(date);
     axios
-      .get(
-        `${API_URL}/api/trucks/${id}?date=${date
-          .toISOString()
-          .split("T")[0]}`
-      )
+      .get(`${API_URL}/api/trucks/${id}?date=${date.toISOString().split("T")[0]}`)
       .then((res) => {
         setLogs(res.data.logs || []);
         setTracker(res.data.tracker);
@@ -174,10 +124,7 @@ function TruckDetails() {
       .catch((err) => console.error(err));
   };
 
-<<<<<<< HEAD
   // ✅ Reverse Geocoding
-=======
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
   useEffect(() => {
     if (tracker?.latitude && tracker?.longitude) {
       axios
@@ -197,45 +144,21 @@ function TruckDetails() {
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
   const todayHours = latestLog ? latestLog.hours_worked : 0;
-<<<<<<< HEAD
 
   // ✅ Current location
-=======
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
   const currentLocation =
     resolvedAddress ||
     latestLog?.current_location ||
     location?.current_location ||
     "N/A";
-  const isInside =
-    tracker?.latitude && tracker?.longitude
-      ? isPointInsidePolygon(
-        [tracker.latitude, tracker.longitude],
-        quarryBoundary
-      )
-      : false;
 
-<<<<<<< HEAD
   // ✅ Geofence check (using Area Difference Method)
   const isInside =
     tracker?.latitude && tracker?.longitude
-      ? isPointInside(
-          [tracker.latitude, tracker.longitude], // test point [lat, lng]
-          quarryBoundaryLatLng
-        )
+      ? isPointInside([tracker.latitude, tracker.longitude], quarryBoundaryLatLng)
       : false;
 
-  console.log(
-    "Truck Position:",
-    tracker?.latitude,
-    tracker?.longitude,
-    "Inside Quarry?",
-    isInside
-  );
-
-=======
   const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
   const handleLogout = () => navigate("/");
 
   return (
@@ -247,8 +170,9 @@ function TruckDetails() {
       />
 
       <main
-        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
-          }`}
+        className={`${styles.appcontent} ${
+          collapsed ? styles.contentcollapsed : styles.contentexpanded
+        }`}
       >
         {/* --- HEADER --- */}
         <header className={styles.header}>
@@ -283,35 +207,21 @@ function TruckDetails() {
               <span className={styles.rolePill}>{truck.role}</span>
               <p className={styles.heroDesc}>{truck.description}</p>
             </div>
-<<<<<<< HEAD
-            <div className={styles.info}>
-              <div className={styles.card}>
-                <div className={styles.row}>
-                  <span className={styles.round1}></span>
-                  <IoLocationOutline className={styles.icon} />
-                  <p className={styles.title}>CURRENT LOCATION</p>
-=======
-            <img
-              src={`${API_URL}${truck.image_url}`}
-              alt={truck.name}
-              className={styles.heroImg}
-            />
-            <div className={styles.heroGlow} />
           </div>
 
           {/* Stat dropdowns */}
           <div className={styles.statStack}>
             {/* Current Location */}
             <div
-              className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""
-                }`}
+              className={`${styles.statTile} ${
+                openTile === "loc" ? styles.open : ""
+              }`}
               onClick={() => toggleTile("loc")}
             >
               <div className={styles.tileHeader}>
                 <div className={styles.tileLeft}>
                   <IoLocationOutline className={styles.tileIcon} />
                   <span className={styles.tileTitle}>CURRENT LOCATION</span>
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
                 </div>
                 {openTile === "loc" ? (
                   <IoChevronUp className={styles.tileChevron} />
@@ -319,12 +229,6 @@ function TruckDetails() {
                   <IoChevronDown className={styles.tileChevron} />
                 )}
               </div>
-<<<<<<< HEAD
-              <div className={styles.card}>
-                <div className={styles.row}>
-                  <span className={styles.round2}></span>
-                  <p className={styles.title}>CONDITION</p>
-=======
               {openTile === "loc" && (
                 <div className={styles.tileContent}>{currentLocation}</div>
               )}
@@ -332,15 +236,15 @@ function TruckDetails() {
 
             {/* Condition */}
             <div
-              className={`${styles.statTile} ${openTile === "cond" ? styles.open : ""
-                }`}
+              className={`${styles.statTile} ${
+                openTile === "cond" ? styles.open : ""
+              }`}
               onClick={() => toggleTile("cond")}
             >
               <div className={styles.tileHeader}>
                 <div className={styles.tileLeft}>
                   <span className={styles.tileIcon}>⚙️</span>
                   <span className={styles.tileTitle}>CONDITION</span>
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
                 </div>
                 {openTile === "cond" ? (
                   <IoChevronUp className={styles.tileChevron} />
@@ -354,35 +258,6 @@ function TruckDetails() {
                 </div>
               )}
             </div>
-<<<<<<< HEAD
-            <div className={styles.infoBox}>
-              <h4>Working Hours Today</h4>
-              <div className={styles.progressCircle}>
-                <svg width="100" height="100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="#eee"
-                    strokeWidth="10"
-                    fill="none"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="rgb(17, 174, 17)"
-                    strokeWidth="10"
-                    fill="none"
-                    strokeDasharray={2 * Math.PI * 45}
-                    strokeDashoffset={
-                      2 * Math.PI * 45 * (1 - todayHours / 15)
-                    }
-                    transform="rotate(-90 50 50)"
-                  />
-                </svg>
-                <span className={styles.circleText}>{todayHours} Hrs</span>
-=======
           </div>
         </section>
 
@@ -420,101 +295,10 @@ function TruckDetails() {
                   dateFormat="yyyy-MM-dd"
                   className={styles.datePicker}
                 />
-
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
               </div>
             </div>
           </div>
 
-<<<<<<< HEAD
-        {/* TRACKER */}
-        <div className={styles.container3}>
-          {tracker ? (
-            <div className={styles.trackerSplit}>
-              <div className={styles.trackerSection}>
-                <h5>Truck Data</h5>
-                <div className={styles.trackerInfo}>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Latitude</p>
-                    <p className={styles.value}>{tracker.latitude}</p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Longitude</p>
-                    <p className={styles.value}>{tracker.longitude}</p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Altitude</p>
-                    <p className={styles.value}>{tracker.altitude} m</p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Speed</p>
-                    <p className={styles.value}>{tracker.speed_kmph} km/h</p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Heading</p>
-                    <p className={styles.value}>{tracker.heading_degrees}°</p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Ignition</p>
-                    <p className={styles.value}>
-                      {tracker.ignition ? "ON" : "OFF"}
-                    </p>
-                  </div>
-                  <div className={styles.trackerCardWide}>
-                    <p className={styles.title}>Event</p>
-                    <p className={styles.value}>
-                      {tracker.event_type} - {tracker.event_description}
-                    </p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Geofence Alert</p>
-                    <p className={styles.value}>
-                      {!isInside
-                        ? "🚨 Outside Boundary"
-                        : "✅ Inside Boundary"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* GPS DEVICE */}
-              <div className={styles.trackerSection}>
-                <h5>GPS Tracker Device</h5>
-                <div className={styles.trackerInfo}>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Device ID</p>
-                    <p className={styles.value}>{tracker.device_id}</p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Timestamp</p>
-                    <p className={styles.value}>
-                      {new Date(tracker.timestamp).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Battery</p>
-                    <p className={styles.value}>{tracker.battery_level}%</p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>Signal</p>
-                    <p className={styles.value}>{tracker.signal_strength}</p>
-                  </div>
-                  <div className={styles.trackerCard}>
-                    <p className={styles.title}>GPS Fix</p>
-                    <p className={styles.value}>
-                      {tracker.gps_fix ? "Yes" : "No"}
-                    </p>
-                  </div>
-                  <div className={styles.trackerCalendar}>
-                    <p className={styles.title}>Select Date</p>
-                    <DatePicker
-                      selected={selectedDate}
-                      onChange={handleDateChange}
-                      dateFormat="yyyy-MM-dd"
-                      className={styles.datePicker}
-                    />
-                  </div>
-=======
           {/* Working Hours */}
           <div className={styles.hoursCard}>
             <h3>WORKING HOURS TODAY</h3>
@@ -525,7 +309,6 @@ function TruckDetails() {
               <div className={styles.hoursCenter}>
                 <div className={styles.hoursNumber}>
                   {String(todayHours).padStart(2, "0")}
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
                 </div>
                 <div className={styles.hoursLabel}>HOURS</div>
               </div>
@@ -582,16 +365,12 @@ function TruckDetails() {
                 <TileLayer
                   url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                   attribution='Tiles © Esri — Source: Esri, Earthstar Geographics, Maxar'
-<<<<<<< HEAD
                 />
                 {/* ✅ Quarry Boundary (Leaflet needs [lat, lng]) */}
                 <Polygon
                   positions={quarryBoundaryLatLng}
                   pathOptions={{ color: "red" }}
-=======
->>>>>>> 9db5638a5aec071d6cb79771d3fe48d791ec0de7
                 />
-                <Polygon positions={quarryBoundary} pathOptions={{ color: "red" }} />
                 <Marker position={[tracker.latitude, tracker.longitude]}>
                   <Popup>
                     Truck is here 🚚 <br />
