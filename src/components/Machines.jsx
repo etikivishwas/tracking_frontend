@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Machines.module.css";
 import Sidebar from "./Sidebar";
-import { FaBell, FaSearch } from "react-icons/fa";
+import { FaBell, FaSearch, FaPlus } from "react-icons/fa";
 import Image from "./passport.jpg";
 import "../App.css";
 
@@ -13,23 +13,30 @@ function Machines() {
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [machines, setMachines] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [newMachine, setNewMachine] = useState({
+    name: "",
+    role: "",
+    description: "",
+    image: "",
+  });
 
-  // ✅ Fetch machines from backend
+  // ✅ Fetch machines
+  const fetchMachines = async () => {
+    try {
+      const res = await fetch(`${API_URL}/machines`);
+      const data = await res.json();
+      setMachines(data || []);
+    } catch (error) {
+      console.error("Error fetching machines:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchMachines = async () => {
-      try {
-        const res = await fetch(`${API_URL}/machines`);
-        const data = await res.json();
-        setMachines(data || []);
-      } catch (error) {
-        console.error("Error fetching machines:", error);
-      }
-    };
-
     fetchMachines();
   }, []);
 
-  // ✅ Safe filter by search term
+  // ✅ Safe filter
   const filteredMachines = machines.filter(
     (machine) =>
       (machine.name || "")
@@ -39,6 +46,28 @@ function Machines() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
   );
+
+  // ✅ Form submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_URL}/machines`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newMachine),
+      });
+      if (res.ok) {
+        alert("✅ Machine added successfully!");
+        setNewMachine({ name: "", role: "", description: "", image: "" });
+        setShowForm(false);
+        fetchMachines(); // reload list
+      } else {
+        alert("❌ Failed to add machine");
+      }
+    } catch (err) {
+      console.error("Error adding machine:", err);
+    }
+  };
 
   const handleLogout = () => navigate("/");
 
@@ -78,15 +107,79 @@ function Machines() {
             <h3>MACHINES</h3>
             <div className={styles.searchContainer}>
               <FaSearch className={styles.searchIcon} />
-                 <input
+              <input
                 type="text"
-                placeholder="Search workers..."
+                placeholder="Search machines..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={styles.searchInput}
               />
             </div>
+            <button
+              className={styles.addButton}
+              onClick={() => setShowForm(true)}
+            >
+              <FaPlus /> Add Machine
+            </button>
           </div>
+
+          {/* Modal Form */}
+          {showForm && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modal}>
+                <h3>Add Machine</h3>
+                <form onSubmit={handleSubmit} className={styles.form}>
+                  <input
+                    type="text"
+                    placeholder="Machine Name"
+                    value={newMachine.name}
+                    onChange={(e) =>
+                      setNewMachine({ ...newMachine, name: e.target.value })
+                    }
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Role"
+                    value={newMachine.role}
+                    onChange={(e) =>
+                      setNewMachine({ ...newMachine, role: e.target.value })
+                    }
+                  />
+                  <textarea
+                    placeholder="Description"
+                    value={newMachine.description}
+                    onChange={(e) =>
+                      setNewMachine({
+                        ...newMachine,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    placeholder="Image URL"
+                    value={newMachine.image}
+                    onChange={(e) =>
+                      setNewMachine({ ...newMachine, image: e.target.value })
+                    }
+                  />
+                  <div className={styles.modalActions}>
+                    <button type="submit" className={styles.saveBtn}>
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.cancelBtn}
+                      onClick={() => setShowForm(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           {/* Machine cards */}
           <div className={styles.cards}>
@@ -119,7 +212,7 @@ function Machines() {
               </div>
             ))}
 
-            {/* If no results */}
+            {/* No results */}
             {filteredMachines.length === 0 && (
               <p className={styles.noData}>No machines found.</p>
             )}

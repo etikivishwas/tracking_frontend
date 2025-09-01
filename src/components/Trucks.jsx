@@ -7,26 +7,68 @@ import Image from "./passport.jpg";
 import "../App.css";
 import axios from "axios";
 
+const API_URL = "http://localhost:5050"; // update when deployed
+
 function Trucks() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [trucks, setTrucks] = useState([]);
+  const [showModal, setShowModal] = useState(false);
 
+  const [formData, setFormData] = useState({
+    name: "",
+    role: "",
+    description: "",
+    image: null,
+  });
+
+  // Fetch trucks
   useEffect(() => {
     axios
-      .get("http://localhost:5050/api/trucks")
+      .get(`${API_URL}/api/trucks`)
       .then((res) => setTrucks(res.data))
       .catch((err) => console.error(err));
   }, []);
 
   const filteredTrucks = trucks.filter(
     (truck) =>
-      truck.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      truck.role.toLowerCase().includes(searchTerm.toLowerCase())
+      (truck.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (truck.role || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleLogout = () => navigate("/");
+
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (files) {
+      setFormData({ ...formData, [name]: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const fd = new FormData();
+      Object.keys(formData).forEach((key) => {
+        fd.append(key, formData[key]);
+      });
+
+      await axios.post(`${API_URL}/api/trucks`, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setShowModal(false);
+      setFormData({ name: "", role: "", description: "", image: null });
+
+      const res = await axios.get(`${API_URL}/api/trucks`);
+      setTrucks(res.data || []);
+    } catch (err) {
+      console.error("Error adding truck:", err);
+    }
+  };
 
   return (
     <div className={styles.applayout}>
@@ -62,15 +104,23 @@ function Trucks() {
         <div className={styles.content}>
           <div className={styles.topRow}>
             <h3>VEHICLES</h3>
-            <div className={styles.searchContainer}>
-              <FaSearch className={styles.searchIcon} />
-              <input
-                type="text"
-                placeholder="Search vehicles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={styles.searchInput}
-              />
+            <div className={styles.topActions}>
+              <button
+                className={styles.addButton}
+                onClick={() => setShowModal(true)}
+              >
+                + Add Truck
+              </button>
+              <div className={styles.searchContainer}>
+                <FaSearch className={styles.searchIcon} />
+                <input
+                  type="text"
+                  placeholder="Search vehicles..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={styles.searchInput}
+                />
+              </div>
             </div>
           </div>
 
@@ -84,7 +134,7 @@ function Trucks() {
               >
                 <div className={styles.profileHeader}>
                   <img
-                    src={`http://localhost:5050${truck.image_url}`}
+                    src={`${API_URL}${truck.image_url}`}
                     alt={truck.name}
                     className={styles.avatar}
                   />
@@ -97,11 +147,61 @@ function Trucks() {
               </div>
             ))}
             {!filteredTrucks.length && (
-              <div className={styles.emptyState}>No vehicles found.</div>
+              <div className={styles.noData}>No vehicles found.</div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h3>Add Truck</h3>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <input
+                type="text"
+                name="name"
+                placeholder="Truck Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+              <input
+                type="text"
+                name="role"
+                placeholder="Type / Role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+              />
+              <textarea
+                name="description"
+                placeholder="Description"
+                value={formData.description}
+                onChange={handleChange}
+              ></textarea>
+              <input
+                type="file"
+                name="image"
+                onChange={handleChange}
+              />
+              <div className={styles.modalActions}>
+                <button type="submit" className={styles.saveBtn}>
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className={styles.cancelBtn}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
