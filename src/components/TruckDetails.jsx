@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Sidebar from "./Sidebar";
-
 import styles from "./TruckDetails.module.css";
 import { FaBell } from "react-icons/fa";
 import {

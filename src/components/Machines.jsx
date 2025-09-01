@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Machines.module.css";
 import Sidebar from "./Sidebar";
-import { FaBell, FaSearch, FaPlus } from "react-icons/fa";
+import { FaBell, FaSearch,} from "react-icons/fa";
 import Image from "./passport.jpg";
 import "../App.css";
 
@@ -104,82 +104,97 @@ function Machines() {
         {/* Content */}
         <div className={styles.content}>
           <div className={styles.topRow}>
-            <h3>MACHINES</h3>
-            <div className={styles.searchContainer}>
-              <FaSearch className={styles.searchIcon} />
-              <input
-                type="text"
-                placeholder="Search machines..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={styles.searchInput}
-              />
-            </div>
-            <button
-              className={styles.addButton}
-              onClick={() => setShowForm(true)}
-            >
-              <FaPlus /> Add Machine
-            </button>
-          </div>
+  <h3 className={styles.sectionTitle}>MACHINES</h3>
+  <div className={styles.topActions}>
+    <button
+      className={styles.addButton}
+      onClick={() => setShowForm(true)}
+    >
+      + Add Machine
+    </button>
+    <div className={styles.searchContainer}>
+      <FaSearch className={styles.searchIcon} />
+      <input
+        type="text"
+        placeholder="Search machines..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className={styles.searchInput}
+      />
+    </div>
+  </div>
+</div>
+{showForm && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modal}>
+      <div className={styles.modalHeader}>
+        <h3>Add Machine</h3>
+        <button
+          type="button"
+          className={styles.closeBtn}
+          onClick={() => setShowForm(false)}
+        >
+          ×
+        </button>
+      </div>
 
-          {/* Modal Form */}
-          {showForm && (
-            <div className={styles.modalOverlay}>
-              <div className={styles.modal}>
-                <h3>Add Machine</h3>
-                <form onSubmit={handleSubmit} className={styles.form}>
-                  <input
-                    type="text"
-                    placeholder="Machine Name"
-                    value={newMachine.name}
-                    onChange={(e) =>
-                      setNewMachine({ ...newMachine, name: e.target.value })
-                    }
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Role"
-                    value={newMachine.role}
-                    onChange={(e) =>
-                      setNewMachine({ ...newMachine, role: e.target.value })
-                    }
-                  />
-                  <textarea
-                    placeholder="Description"
-                    value={newMachine.description}
-                    onChange={(e) =>
-                      setNewMachine({
-                        ...newMachine,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                  <input
-                    type="text"
-                    placeholder="Image URL"
-                    value={newMachine.image}
-                    onChange={(e) =>
-                      setNewMachine({ ...newMachine, image: e.target.value })
-                    }
-                  />
-                  <div className={styles.modalActions}>
-                    <button type="submit" className={styles.saveBtn}>
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.cancelBtn}
-                      onClick={() => setShowForm(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <input
+          type="text"
+          placeholder="Machine Name"
+          value={newMachine.name}
+          onChange={(e) =>
+            setNewMachine({ ...newMachine, name: e.target.value })
+          }
+          required
+        />
+        <input
+          type="text"
+          placeholder="Role"
+          value={newMachine.role}
+          onChange={(e) =>
+            setNewMachine({ ...newMachine, role: e.target.value })
+          }
+        />
+        <textarea
+          placeholder="Description"
+          value={newMachine.description}
+          onChange={(e) =>
+            setNewMachine({
+              ...newMachine,
+              description: e.target.value,
+            })
+          }
+        />
+        <input
+          type="text"
+          placeholder="Image URL"
+          value={newMachine.image}
+          onChange={(e) =>
+            setNewMachine({ ...newMachine, image: e.target.value })
+          }
+        />
+
+        <div className={styles.modalActions}>
+          <button type="submit" className={styles.saveBtn}>
+            Save Machine
+          </button>
+          <button
+            type="button"
+            className={styles.cancelBtn}
+            onClick={() => setShowForm(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
+
+
+        
 
           {/* Machine cards */}
           <div className={styles.cards}>

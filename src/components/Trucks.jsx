@@ -80,9 +80,8 @@ function Trucks() {
       />
 
       <div
-        className={`${styles.appcontent} ${
-          collapsed ? styles.contentcollapsed : styles.contentexpanded
-        }`}
+        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
+          }`}
       >
         {/* Header */}
         <div className={styles.header}>
@@ -103,7 +102,7 @@ function Trucks() {
         {/* Content */}
         <div className={styles.content}>
           <div className={styles.topRow}>
-            <h3>VEHICLES</h3>
+            <h3 className={styles.sectionTitle}>VEHICLES</h3>
             <div className={styles.topActions}>
               <button
                 className={styles.addButton}
@@ -123,6 +122,7 @@ function Trucks() {
               </div>
             </div>
           </div>
+
 
           {/* Cards */}
           <div className={styles.cards}>
@@ -157,7 +157,17 @@ function Trucks() {
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
-            <h3>Add Truck</h3>
+            <div className={styles.modalHeader}>
+              <h3>Add Truck</h3>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={() => setShowModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
             <form onSubmit={handleSubmit} className={styles.form}>
               <input
                 type="text"
@@ -181,14 +191,11 @@ function Trucks() {
                 value={formData.description}
                 onChange={handleChange}
               ></textarea>
-              <input
-                type="file"
-                name="image"
-                onChange={handleChange}
-              />
+              <input type="file" name="image" onChange={handleChange} />
+
               <div className={styles.modalActions}>
                 <button type="submit" className={styles.saveBtn}>
-                  Save
+                  Save Truck
                 </button>
                 <button
                   type="button"
@@ -202,6 +209,7 @@ function Trucks() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
