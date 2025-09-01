@@ -1,8 +1,16 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
+export default function Sidebar({ collapsed, onToggle }) {
+  const navigate = useNavigate();
 
-export default function Sidebar({ collapsed, onToggle, onLogout }) {
+  const handleLogout = () => {
+    // clear session/local storage if used
+    localStorage.removeItem("token"); 
+    // navigate to login
+    navigate("/login");
+  };
+
   return (
     <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>
       {/* Header with toggle */}
@@ -11,7 +19,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout }) {
           type="button"
           className="btn btn-light btn-sm hamburg"
           onClick={(e) => {
-            e.stopPropagation(); // prevent bubbling
+            e.stopPropagation();
             onToggle();
           }}
         >
@@ -22,42 +30,26 @@ export default function Sidebar({ collapsed, onToggle, onLogout }) {
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        <NavLink
-          to="/dashboard"
-          className={({ isActive }) =>
-            `sidebar-link ${isActive ? "active" : ""}`
-          }
-        >
+        <NavLink to="/dashboard" className={({ isActive }) =>
+          `sidebar-link ${isActive ? "active" : ""}`}>
           <i className="bi bi-speedometer2"></i>
           <span className="label">Dashboard</span>
         </NavLink>
 
-        <NavLink
-          to="/humans"
-          className={({ isActive }) =>
-            `sidebar-link ${isActive ? "active" : ""}`
-          }
-        >
+        <NavLink to="/humans" className={({ isActive }) =>
+          `sidebar-link ${isActive ? "active" : ""}`}>
           <i className="bi bi-people-fill"></i>
           <span className="label">Workers</span>
         </NavLink>
 
-        <NavLink
-          to="/machines"
-          className={({ isActive }) =>
-            `sidebar-link ${isActive ? "active" : ""}`
-          }
-        >
+        <NavLink to="/machines" className={({ isActive }) =>
+          `sidebar-link ${isActive ? "active" : ""}`}>
           <i className="bi bi-gear-fill"></i>
           <span className="label">Machines</span>
         </NavLink>
 
-        <NavLink
-          to="/trucks"
-          className={({ isActive }) =>
-            `sidebar-link ${isActive ? "active" : ""}`
-          }
-        >
+        <NavLink to="/trucks" className={({ isActive }) =>
+          `sidebar-link ${isActive ? "active" : ""}`}>
           <i className="bi bi-truck"></i>
           <span className="label">Trucks</span>
         </NavLink>
@@ -76,7 +68,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout }) {
         <button
           type="button"
           className="btn btn-sm btn-danger w-100 mt-2"
-          onClick={onLogout}
+          onClick={handleLogout}
         >
           <i className="bi bi-box-arrow-right"></i>
           {!collapsed && <span className="ms-2">Logout</span>}
