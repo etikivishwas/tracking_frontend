@@ -20,7 +20,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "leaflet/dist/leaflet.css";
 
 // ✅ React-Leaflet
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
 import L from "leaflet";
 
 // ✅ Fix default Leaflet marker issue
@@ -32,6 +32,37 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
+// -------------------
+// ✅ Area Difference Method Helpers
+// -------------------
+function polygonArea(coords) {
+  let area = 0;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const [x1, y1] = coords[i];
+    const [x2, y2] = coords[i + 1];
+    area += x1 * y2 - x2 * y1;
+  }
+  return Math.abs(area / 2);
+}
+
+function triangleArea(p1, p2, p3) {
+  return Math.abs(
+    (p1[0] * (p2[1] - p3[1]) +
+      p2[0] * (p3[1] - p1[1]) +
+      p3[0] * (p1[1] - p2[1])) / 2
+  );
+}
+
+function isPointInside(point, polygon) {
+  const polyArea = polygonArea(polygon);
+  let sumArea = 0;
+  for (let i = 0; i < polygon.length - 1; i++) {
+    sumArea += triangleArea(point, polygon[i], polygon[i + 1]);
+  }
+  sumArea += triangleArea(point, polygon[polygon.length - 1], polygon[0]);
+  return Math.abs(sumArea - polyArea) < 1e-6;
+}
+
 function TruckDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -41,13 +72,30 @@ function TruckDetails() {
   const [tracker, setTracker] = useState(null);
   const [location, setLocation] = useState(null);
 
-  // ✅ New: Resolved address from reverse geocoding
+  // ✅ Reverse geocoded address
   const [resolvedAddress, setResolvedAddress] = useState(null);
 
   // Calendar
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // Initial fetch
+  // ✅ Quarry boundary polygon in [lat, lng] for Leaflet
+  const quarryBoundaryLatLng = [
+    [15.585024, 79.822357],
+    [15.584936, 79.823761],
+    [15.585238, 79.823862],
+    [15.585126, 79.824889],
+    [15.584812, 79.824828],
+    [15.584233, 79.825093],
+    [15.584656, 79.827969],
+    [15.584413, 79.831334],
+    [15.585398, 79.830969],
+    [15.586281, 79.821970],
+    [15.585024, 79.822357], // close polygon
+  ];
+
+  // -------------------
+  // API Fetch
+  // -------------------
   useEffect(() => {
     axios
       .get(`http://localhost:5050/api/trucks/${id}`)
@@ -77,16 +125,15 @@ function TruckDetails() {
       .catch((err) => console.error(err));
   };
 
-  // ✅ Reverse Geocoding for human-readable address
+  // ✅ Reverse Geocoding
   useEffect(() => {
     if (tracker?.latitude && tracker?.longitude) {
       axios
         .get(
-          `https://nominatim.openstreetmap.org/reverse?lat=${tracker.latitude}&lon=${tracker.longitude}&format=json`,
-          { headers: { "User-Agent": "TruckApp/1.0 (contact@example.com)" } }
+          `https://nominatim.openstreetmap.org/reverse?lat=${tracker.latitude}&lon=${tracker.longitude}&format=json`
         )
         .then((res) => {
-          if (res.data && res.data.display_name) {
+          if (res.data?.display_name) {
             setResolvedAddress(res.data.display_name);
           }
         })
@@ -99,12 +146,29 @@ function TruckDetails() {
   const latestLog = logs.length ? logs[logs.length - 1] : null;
   const todayHours = latestLog ? latestLog.hours_worked : 0;
 
-  // ✅ Prefer resolved address first
+  // ✅ Current location
   const currentLocation =
     resolvedAddress ||
     latestLog?.current_location ||
     location?.current_location ||
     "N/A";
+
+  // ✅ Geofence check (using Area Difference Method)
+  const isInside =
+    tracker?.latitude && tracker?.longitude
+      ? isPointInside(
+          [tracker.latitude, tracker.longitude], // test point [lat, lng]
+          quarryBoundaryLatLng
+        )
+      : false;
+
+  console.log(
+    "Truck Position:",
+    tracker?.latitude,
+    tracker?.longitude,
+    "Inside Quarry?",
+    isInside
+  );
 
   const handleLogout = () => navigate("/");
 
@@ -161,7 +225,6 @@ function TruckDetails() {
               />
             </div>
             <div className={styles.info}>
-              {/* ✅ Current Location */}
               <div className={styles.card}>
                 <div className={styles.row}>
                   <span className={styles.round1}></span>
@@ -170,7 +233,6 @@ function TruckDetails() {
                 </div>
                 <p className={styles.value1}>{currentLocation}</p>
               </div>
-              {/* Condition */}
               <div className={styles.card}>
                 <div className={styles.row}>
                   <span className={styles.round2}></span>
@@ -181,7 +243,6 @@ function TruckDetails() {
                 </p>
               </div>
             </div>
-            {/* Hours */}
             <div className={styles.infoBox}>
               <h4>Working Hours Today</h4>
               <div className={styles.progressCircle}>
@@ -218,7 +279,6 @@ function TruckDetails() {
         <div className={styles.container3}>
           {tracker ? (
             <div className={styles.trackerSplit}>
-              {/* TRUCK DATA */}
               <div className={styles.trackerSection}>
                 <h5>Truck Data</h5>
                 <div className={styles.trackerInfo}>
@@ -257,7 +317,9 @@ function TruckDetails() {
                   <div className={styles.trackerCard}>
                     <p className={styles.title}>Geofence Alert</p>
                     <p className={styles.value}>
-                      {tracker.geofence_alert ? "Yes" : "No"}
+                      {!isInside
+                        ? "🚨 Outside Boundary"
+                        : "✅ Inside Boundary"}
                     </p>
                   </div>
                 </div>
@@ -291,7 +353,6 @@ function TruckDetails() {
                       {tracker.gps_fix ? "Yes" : "No"}
                     </p>
                   </div>
-                  {/* Calendar */}
                   <div className={styles.trackerCalendar}>
                     <p className={styles.title}>Select Date</p>
                     <DatePicker
@@ -358,12 +419,18 @@ function TruckDetails() {
             <div style={{ height: "400px", width: "100%" }}>
               <MapContainer
                 center={[tracker.latitude, tracker.longitude]}
-                zoom={13}
+                zoom={15}
                 style={{ height: "100%", width: "100%", borderRadius: "10px" }}
               >
+                {/* ✅ Satellite Layer from Esri */}
                 <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                  attribution='Tiles © Esri — Source: Esri, Earthstar Geographics, Maxar'
+                />
+                {/* ✅ Quarry Boundary (Leaflet needs [lat, lng]) */}
+                <Polygon
+                  positions={quarryBoundaryLatLng}
+                  pathOptions={{ color: "red" }}
                 />
                 <Marker position={[tracker.latitude, tracker.longitude]}>
                   <Popup>
