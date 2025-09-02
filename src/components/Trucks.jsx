@@ -14,6 +14,7 @@ function Trucks() {
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [trucks, setTrucks] = useState([]);
+  const [loading, setLoading] = useState(true); // ✅ loader
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -23,12 +24,19 @@ function Trucks() {
     image: null,
   });
 
-  // Fetch trucks
+  // ✅ Fetch trucks
   useEffect(() => {
+    setLoading(true);
     axios
       .get(`${API_URL}/api/trucks`)
-      .then((res) => setTrucks(res.data))
-      .catch((err) => console.error(err));
+      .then((res) => {
+        setTrucks(res.data || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   }, []);
 
   const filteredTrucks = trucks.filter(
@@ -63,6 +71,7 @@ function Trucks() {
       setShowModal(false);
       setFormData({ name: "", role: "", description: "", image: null });
 
+      // Refresh trucks list
       const res = await axios.get(`${API_URL}/api/trucks`);
       setTrucks(res.data || []);
     } catch (err) {
@@ -80,8 +89,9 @@ function Trucks() {
       />
 
       <div
-        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
-          }`}
+        className={`${styles.appcontent} ${
+          collapsed ? styles.contentcollapsed : styles.contentexpanded
+        }`}
       >
         {/* Header */}
         <div className={styles.header}>
@@ -123,33 +133,39 @@ function Trucks() {
             </div>
           </div>
 
-
-          {/* Cards */}
-          <div className={styles.cards}>
-            {filteredTrucks.map((truck) => (
-              <div
-                key={truck.id}
-                className={styles.card}
-                onClick={() => navigate(`/trucks/${truck.id}`)}
-              >
-                <div className={styles.profileHeader}>
-                  <img
-                    src={`${API_URL}${truck.image_url}`}
-                    alt={truck.name}
-                    className={styles.avatar}
-                  />
-                  <div>
-                    <h4 className={styles.name}>{truck.name}</h4>
-                    <span className={styles.role}>{truck.role}</span>
+          {/* ✅ Loading state */}
+          {loading ? (
+            <div className={styles.loading}>Loading trucks…</div>
+          ) : (
+            <div className={styles.cards}>
+              {filteredTrucks.map((truck) => (
+                <div
+                  key={truck.id}
+                  className={styles.card}
+                  onClick={() => navigate(`/trucks/${truck.id}`)}
+                >
+                  <div className={styles.profileHeader}>
+                    <img
+                      src={`${API_URL}${truck.image_url}`}
+                      alt={truck.name}
+                      className={styles.avatar}
+                      onError={(e) =>
+                        (e.currentTarget.src = `${API_URL}/uploads/placeholder.jpg`)
+                      }
+                    />
+                    <div>
+                      <h4 className={styles.name}>{truck.name}</h4>
+                      <span className={styles.role}>{truck.role}</span>
+                    </div>
                   </div>
+                  <p className={styles.description}>{truck.description}</p>
                 </div>
-                <p className={styles.description}>{truck.description}</p>
-              </div>
-            ))}
-            {!filteredTrucks.length && (
-              <div className={styles.noData}>No vehicles found.</div>
-            )}
-          </div>
+              ))}
+              {!filteredTrucks.length && (
+                <div className={styles.noData}>No vehicles found.</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -209,7 +225,6 @@ function Trucks() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

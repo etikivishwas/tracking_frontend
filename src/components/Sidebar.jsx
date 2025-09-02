@@ -5,10 +5,11 @@ export default function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // clear session/local storage if used
-    localStorage.removeItem("token"); 
-    // navigate to login
-    navigate("/login");
+    // Clear login state
+    localStorage.removeItem("isAuthenticated"); 
+
+    // Redirect to login
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -30,26 +31,42 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        <NavLink to="/dashboard" className={({ isActive }) =>
-          `sidebar-link ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
           <i className="bi bi-speedometer2"></i>
           <span className="label">Dashboard</span>
         </NavLink>
 
-        <NavLink to="/humans" className={({ isActive }) =>
-          `sidebar-link ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/humans"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
           <i className="bi bi-people-fill"></i>
           <span className="label">Workers</span>
         </NavLink>
 
-        <NavLink to="/machines" className={({ isActive }) =>
-          `sidebar-link ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/machines"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
           <i className="bi bi-gear-fill"></i>
           <span className="label">Machines</span>
         </NavLink>
 
-        <NavLink to="/trucks" className={({ isActive }) =>
-          `sidebar-link ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/trucks"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
           <i className="bi bi-truck"></i>
           <span className="label">Trucks</span>
         </NavLink>

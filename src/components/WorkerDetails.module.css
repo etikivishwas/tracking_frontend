@@ -19,13 +19,7 @@
   margin-left: 80px;
 }
 
-/* Loading */
-.loading {
-  display: grid;
-  place-items: center;
-  min-height: 100vh;
-  color: #fff;
-}
+
 
 /* ---------- Header ---------- */
 .header {
@@ -111,64 +105,70 @@
   grid-template-columns: 1.6fr .9fr;
   gap: 22px;
   padding: 0 2%;
-}
 
-/* Hero */
+/* --- HERO CARD --- */
 .heroCard {
   position: relative;
   background: linear-gradient(180deg, #0e3e24, #0a2415);
   border-radius: 18px;
   padding: 22px;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .04);
-  min-height: 240px;
-}
-
-.heroGlow {
-  position: absolute;
-  inset: -20%;
-  background: radial-gradient(60% 60% at 20% 30%, rgba(33, 224, 101, .15), transparent 60%);
-  filter: blur(24px);
-  pointer-events: none;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45),
+              inset 0 1px 0 rgba(255, 255, 255, .04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .heroText {
   max-width: 60%;
+  z-index: 2;
 }
 
 .heroName {
-  margin: 0 0 8px;
-  font-size: clamp(1.8rem, 3.5vw, 3rem);
-  font-weight: 800;
+  font-size: 1.8rem;
+  font-weight: bold;
   color: #fff;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, .4);
 }
 
 .rolePill {
   display: inline-block;
   background: #21e065;
-  color: #04200f;
-  border: 1px solid #35ff83;
-  font-weight: 800;
-  padding: 6px 14px;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  color: #04170c;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  margin: 8px 0;
 }
 
 .heroDesc {
-  color: #cfe9d9;
-  max-width: 520px;
+  font-size: 0.95rem;
+  color: #ccc;
+  margin-top: 8px;
 }
 
 .heroImg {
-  position: absolute;
-  right: 18px;
-  bottom: 0;
-  height: 92%;
-  max-height: 300px;
-  object-fit: contain;
-  filter: drop-shadow(0 14px 30px rgba(0, 0, 0, .6));
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 16px;
+  position: relative;
+  z-index: 2;
 }
+
+.heroGlow {
+  position: absolute;
+  right: 10%;
+  bottom: 10%;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(33, 224, 101, 0.3), transparent);
+  z-index: 1;
+}
+}
+
 
 /* Right stacked dropdowns */
 .statStack {
@@ -409,4 +409,11 @@
   .rowTwo {
     grid-template-columns: 1fr;
   }
+}
+
+.loading {
+  display: grid;
+  place-items: center ;
+  min-height: 100vh;
+  color: #fff;
 }

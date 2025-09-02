@@ -88,55 +88,75 @@
 
 /* --- ROW 1 --- */
 .rowOne {
-  display: flex;
-  gap: 2rem;
-  padding: 2rem;
+  display: flex; 
+  gap: 1rem;
+  padding: 1rem;
 }
+/* --- HERO CARD --- */
 .heroCard {
-  flex: 1;
-  background: linear-gradient(200deg, #057305, #0b6128);
-  border-radius: 16px;
-  padding: 20px;
-  color: white;
-  position: relative;
+  flex: 1.5; 
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  background: linear-gradient(180deg, #0e3e24, #0a2415);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45),
+              inset 0 1px 0 rgba(255, 255, 255, .04);
+  position: relative;
+  min-height: 180px;
 }
+
 .heroText {
+  max-width: 60%;
   z-index: 2;
 }
+
 .heroName {
-  margin: 0;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #fff;
 }
+
 .rolePill {
-  background: green;
+  display: inline-block;
+  background: #21e065;
+  color: #04170c;
+  font-size: 0.85rem;
+  font-weight: 600;
   padding: 4px 10px;
   border-radius: 12px;
-  font-size: 14px;
+  margin: 8px 0;
 }
+
 .heroDesc {
-  margin-top: 6px;
-  opacity: 0.9;
+  font-size: 0.95rem;
+  color: #ccc;
+  margin-top: 8px;
 }
+
 .heroImg {
-  width: 120px;
-  height: 120px;
+  width: 160px;
+  height: 160px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 16px;
+  position: relative;
   z-index: 2;
 }
+
 .heroGlow {
   position: absolute;
-  top: -20%;
-  right: -20%;
+  right: 10%;
+  bottom: 10%;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgba(17,174,17,0.3), transparent 70%);
   border-radius: 50%;
+  background: radial-gradient(circle, rgba(33, 224, 101, 0.3), transparent);
   z-index: 1;
 }
+
+/* End */
+
 .statStack {
   flex: 1;
   display: flex;
@@ -491,3 +511,9 @@
   color: white;
 }
 
+.loading {
+  display: grid;
+  place-items: center ;
+  min-height: 100vh;
+  color: #fff;
+}

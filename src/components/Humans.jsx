@@ -6,7 +6,7 @@ import { FaBell, FaSearch } from "react-icons/fa";
 import axios from "axios";
 import "../App.css";
 
-const API_URL = "https://trackingbackend-7fvy.onrender.com"; 
+const API_URL = "https://trackingbackend-7fvy.onrender.com";
 
 const resolveImage = (url) => {
   if (!url) return `${API_URL}/uploads/placeholder.jpg`;
@@ -19,6 +19,7 @@ function Humans() {
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [workers, setWorkers] = useState([]);
+  const [loading, setLoading] = useState(true); // ✅ loading state
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -34,13 +35,16 @@ function Humans() {
 
   // Fetch workers
   useEffect(() => {
+    setLoading(true);
     axios
       .get(`${API_URL}/api/workers`)
       .then((res) => {
         setWorkers(res.data || []);
+        setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching workers:", err);
+        setLoading(false);
       });
   }, []);
 
@@ -133,7 +137,7 @@ function Humans() {
                 className={styles.addButton}
                 onClick={() => setShowModal(true)}
               >
-                  + Add Worker
+                + Add Worker
               </button>
               <div className={styles.searchContainer}>
                 <FaSearch className={styles.searchIcon} />
@@ -148,129 +152,134 @@ function Humans() {
             </div>
           </div>
 
-          <div className={styles.cards}>
-            {filteredWorkers.map((worker) => (
-              <div
-                key={worker.id}
-                className={styles.card}
-                onClick={() => navigate(`/workers/${worker.id}`)}
-              >
-                <div className={styles.profileHeader}>
-                  <img
-                    src={resolveImage(worker.image_url)}
-                    alt={worker.name}
-                    className={styles.cardAvatar}
-                    onError={(e) =>
-                      (e.currentTarget.src = `${API_URL}/uploads/placeholder.jpg`)
-                    }
-                  />
-                  <div>
-                    <h4 className={styles.name}>{worker.name}</h4>
-                    <span className={styles.role}>{worker.role}</span>
+          {/* ✅ Loading state */}
+          {loading ? (
+            <div className={styles.loading}>Loading workers...</div>
+          ) : (
+            <div className={styles.cards}>
+              {filteredWorkers.map((worker) => (
+                <div
+                  key={worker.id}
+                  className={styles.card}
+                  onClick={() => navigate(`/workers/${worker.id}`)}
+                >
+                  <div className={styles.profileHeader}>
+                    <img
+                      src={resolveImage(worker.image_url)}
+                      alt={worker.name}
+                      className={styles.cardAvatar}
+                      onError={(e) =>
+                        (e.currentTarget.src = `${API_URL}/uploads/placeholder.jpg`)
+                      }
+                    />
+                    <div>
+                      <h4 className={styles.name}>{worker.name}</h4>
+                      <span className={styles.role}>{worker.role}</span>
+                    </div>
                   </div>
+                  <p className={styles.description}>{worker.description}</p>
                 </div>
-                <p className={styles.description}>{worker.description}</p>
+              ))}
+              {!filteredWorkers.length && (
+                <div className={styles.emptyState}>
+                  No workers match “{searchTerm}”.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3>Add Worker</h3>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={() => setShowModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+              <input
+                type="text"
+                name="role"
+                placeholder="Role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+              />
+              <textarea
+                name="description"
+                placeholder="Description"
+                value={formData.description}
+                onChange={handleChange}
+              ></textarea>
+              <input
+                type="text"
+                name="phone"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={handleChange}
+              />
+              <input
+                type="text"
+                name="gender"
+                placeholder="Gender"
+                value={formData.gender}
+                onChange={handleChange}
+              />
+              <input
+                type="number"
+                name="age"
+                placeholder="Age"
+                value={formData.age}
+                onChange={handleChange}
+              />
+              <input
+                type="text"
+                name="blood_group"
+                placeholder="Blood Group"
+                value={formData.blood_group}
+                onChange={handleChange}
+              />
+              <input
+                type="date"
+                name="date_of_join"
+                value={formData.date_of_join}
+                onChange={handleChange}
+              />
+              <input type="file" name="image" onChange={handleChange} />
+
+              <div className={styles.modalActions}>
+                <button type="submit" className={styles.saveBtn}>
+                  Save Worker
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className={styles.cancelBtn}
+                >
+                  Cancel
+                </button>
               </div>
-            ))}
-            {!filteredWorkers.length && (
-              <div className={styles.emptyState}>
-                No workers match “{searchTerm}”.
-              </div>
-            )}
+            </form>
           </div>
         </div>
-      </div>
-
-   
-    {showModal && (
-  <div className={styles.modalOverlay}>
-    <div className={styles.modal}>
-      <div className={styles.modalHeader}>
-        <h3>Add Worker</h3>
-        <button
-          type="button"
-          className={styles.closeBtn}
-          onClick={() => setShowModal(false)}
-        >
-          ×
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="role"
-          placeholder="Role"
-          value={formData.role}
-          onChange={handleChange}
-          required
-        />
-        <textarea
-          name="description"
-          placeholder="Description"
-          value={formData.description}
-          onChange={handleChange}
-        ></textarea>
-        <input
-          type="text"
-          name="phone"
-          placeholder="Phone Number"
-          value={formData.phone}
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          name="gender"
-          placeholder="Gender"
-          value={formData.gender}
-          onChange={handleChange}
-        />
-        <input
-          type="number"
-          name="age"
-          placeholder="Age"
-          value={formData.age}
-          onChange={handleChange}
-        />
-        <input
-          type="text"
-          name="blood_group"
-          placeholder="Blood Group"
-          value={formData.blood_group}
-          onChange={handleChange}
-        />
-        <input
-          type="date"
-          name="date_of_join"
-          value={formData.date_of_join}
-          onChange={handleChange}
-        />
-        <input type="file" name="image" onChange={handleChange} />
-
-        <div className={styles.modalActions}>
-          <button type="submit" className={styles.saveBtn}>
-            Save Worker
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowModal(false)}
-            className={styles.cancelBtn}
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 }
