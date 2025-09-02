@@ -7,7 +7,7 @@ import Image from "./passport.jpg";
 import "../App.css";
 import axios from "axios";
 
-const API_URL = "http://localhost:5050"; // update when deployed
+const API_URL = "https://trackingbackend-7fvy.onrender.com"; // update when deployed
 
 function Trucks() {
   const navigate = useNavigate();

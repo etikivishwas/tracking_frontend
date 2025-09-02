@@ -13,7 +13,7 @@ function Login({ setIsAuthenticated }) {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:5050/api/auth/login", {
+      const res = await axios.post("https://trackingbackend-7fvy.onrender.com/api/auth/login", {
         email,
         password,
         staySignedIn,

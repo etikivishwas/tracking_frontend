@@ -35,7 +35,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5050";
+const API_URL = process.env.REACT_APP_API_URL || "https://trackingbackend-7fvy.onrender.com";
 
 function MachineDetails() {
   const { id } = useParams();

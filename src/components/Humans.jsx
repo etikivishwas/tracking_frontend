@@ -6,7 +6,7 @@ import { FaBell, FaSearch } from "react-icons/fa";
 import axios from "axios";
 import "../App.css";
 
-const API_URL = "http://localhost:5050"; 
+const API_URL = "https://trackingbackend-7fvy.onrender.com"; 
 
 const resolveImage = (url) => {
   if (!url) return `${API_URL}/uploads/placeholder.jpg`;
