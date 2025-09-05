@@ -1,13 +1,37 @@
+/* ============================
+   THEME VARIABLES
+   ============================ */
+.dark {
+  --bg: #000;
+  --text: #fff;
+  --header-bg: #111;
+  --card-bg: linear-gradient(200deg, #004d00, #009933);
+  --input-bg: #0d2f18;
+  --input-border: #2f4f2f;
+  --muted: #bbb;
+}
+
+.light {
+  --bg: #f6f8fa;
+  --text: #111;
+  --header-bg: #fff;
+  --card-bg: linear-gradient(200deg, #e9ffe9, #bfffc4);
+  --input-bg: #fff;
+  --input-border: #ccc;
+  --muted: #666;
+}
+
 .applayout {
   display: flex;
-  background-color: black;
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .appcontent {
   flex: 1;
   transition: all 0.3s ease;
-  color: white;
-  background: #000;
+  background: var(--bg);
+  color: var(--text);
   padding: 0;
   margin: 0;
 }
@@ -20,14 +44,17 @@
   margin-left: 80px; /* sidebar collapsed */
 }
 
-/* Header */
+/* ============================
+   HEADER
+   ============================ */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 14px 2%;
-  background: #111;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: var(--header-bg);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  color: var(--text);
 }
 
 .title h2 {
@@ -41,14 +68,14 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  color: white;
+  color: var(--text);
 }
 
 .notification {
   position: relative;
   font-size: 1.3rem;
   cursor: pointer;
-  color: white;
+  color: var(--text);
 }
 
 .badge {
@@ -79,7 +106,33 @@
   cursor: pointer;
 }
 
-/* Content */
+/* ✅ theme toggle beside notification */
+.themeToggle {
+  height: 36px;
+  width: 36px;
+  border-radius: 8px;
+  border: none;
+  margin-left: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: rgba(0,0,0,0.05);
+  color: var(--text);
+  font-size: 16px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.light .themeToggle {
+  background: rgba(0,0,0,0.06);
+}
+
+.themeToggle:hover {
+  background: rgba(0,0,0,0.12);
+}
+
+/* ============================
+   CONTENT
+   ============================ */
 .content {
   min-height: 100vh;
   padding: 20px 2%;
@@ -98,13 +151,14 @@
   font-weight: 600;
 }
 
+/* Search */
 .searchContainer {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-right: 3%;
-  background: #0d0d0d;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 10px;
   padding: 6px 12px;
 }
@@ -118,12 +172,14 @@
   background: transparent;
   border: none;
   outline: none;
-  color: #fff;
+  color: var(--text);
   width: 200px;
   font-size: 0.95rem;
 }
 
-/* Cards */
+/* ============================
+   CARDS
+   ============================ */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -131,14 +187,14 @@
 }
 
 .card {
-  background: linear-gradient(200deg, #004d00, #009933);
+  background: var(--card-bg);
   border: none;
   border-radius: 12px;
   padding: 18px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
-  color: white;
+  color: var(--text);
 }
 
 .card:hover {
@@ -178,7 +234,7 @@
 
 .description {
   font-size: 0.9rem;
-  color: #e0e0e0;
+  color: var(--muted);
   line-height: 1.5;
 }
 
@@ -186,12 +242,12 @@
   padding: 20px;
   text-align: center;
   font-size: 1rem;
-  color: #bbb;
+  color: var(--muted);
 }
 
 .addButton {
-  height: 40px;                /* match search input height */
-  padding: 0 16px;             /* horizontal only */
+  height: 40px;
+  padding: 0 16px;
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -199,9 +255,9 @@
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
-  line-height: 40px;           /* 🔹 force text to stay centered in one line */
-  white-space: nowrap;         /* 🔹 prevents wrapping to 2 lines */
-  display: inline-block;       /* 🔹 keeps it natural button size */
+  line-height: 40px;
+  white-space: nowrap;
+  display: inline-block;
   text-align: center;
 }
 
@@ -209,15 +265,15 @@
   background-color: #45a049;
 }
 
-
-
 .topActions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-/* Overlay */
+/* ============================
+   MODAL
+   ============================ */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -233,10 +289,9 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Modal box */
 .modal {
-  background: #1b1d1f;
-  color: white;
+  background: var(--header-bg);
+  color: var(--text);
   width: 420px;
   max-width: 90%;
   padding: 24px;
@@ -246,7 +301,6 @@
   position: relative;
 }
 
-/* Modal header */
 .modalHeader {
   display: flex;
   justify-content: space-between;
@@ -278,9 +332,9 @@
   padding: 10px 12px;
   margin-bottom: 12px;
   border-radius: 8px;
-  border: 1px solid #2f4f2f;
-  background: #0d2f18;
-  color: white;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
   font-size: 14px;
 }
 
@@ -291,7 +345,7 @@
   box-shadow: 0 0 0 2px rgba(35, 204, 91, 0.4);
 }
 
-/* Buttons */
+/* Modal buttons */
 .modalActions {
   display: flex;
   justify-content: flex-end;
@@ -327,7 +381,9 @@
   background: #555;
 }
 
-/* Animations */
+/* ============================
+   ANIMATIONS
+   ============================ */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -337,5 +393,3 @@
   from { transform: translateY(-20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-
-

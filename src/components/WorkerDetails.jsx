@@ -4,6 +4,7 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import styles from "./WorkerDetails.module.css";
 import { FaBell } from "react-icons/fa";
+import { FiSun, FiMoon } from "react-icons/fi";
 import {
   IoLocationOutline,
   IoCalendarOutline,
@@ -20,12 +21,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
-// ✅ Fix default Leaflet marker issue
+// Fix default Leaflet marker issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -46,7 +46,24 @@ function WorkerDetails() {
   const [logs, setLogs] = useState([]);
   const [openTile, setOpenTile] = useState(null);
   const [resolvedAddress, setResolvedAddress] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ new loading state
+  const [loading, setLoading] = useState(true);
+
+  // Theme state (persisted)
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("milieu-theme") || "dark";
+    } catch {
+      return "dark";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("milieu-theme", theme);
+    } catch {}
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   useEffect(() => {
     // Reset when id changes
@@ -68,7 +85,7 @@ function WorkerDetails() {
       });
   }, [id]);
 
-  // ✅ Reverse geocoding
+  // Reverse geocoding
   useEffect(() => {
     if (worker?.latitude && worker?.longitude) {
       axios
@@ -87,11 +104,16 @@ function WorkerDetails() {
   const handleLogout = () => navigate("/");
 
   return (
-    <div className={styles.applayout}>
+    <div
+      className={`${styles.applayout} ${
+        theme === "light" ? styles.light : styles.dark
+      }`}
+    >
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
+        theme={theme} // optional prop for Sidebar styling
       />
 
       <main
@@ -99,7 +121,6 @@ function WorkerDetails() {
           collapsed ? styles.contentcollapsed : styles.contentexpanded
         }`}
       >
-        {/* ✅ Show blank / loader */}
         {loading ? (
           <div className={styles.loading}>Loading worker details...</div>
         ) : (
@@ -119,6 +140,17 @@ function WorkerDetails() {
                   <span className={styles.badge}>5</span>
                   <FaBell />
                 </div>
+
+                {/* Theme toggle beside notification */}
+                <button
+                  onClick={toggleTheme}
+                  className={styles.themeToggle}
+                  aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                  title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                >
+                  {theme === "dark" ? <FiSun /> : <FiMoon />}
+                </button>
+
                 <img
                   src={`${API_URL}/uploads/1.jpg`}
                   alt="User"
@@ -159,9 +191,7 @@ function WorkerDetails() {
                   <div className={styles.tileHeader}>
                     <div className={styles.tileLeft}>
                       <IoLocationOutline className={styles.tileIcon} />
-                      <span className={styles.tileTitle}>
-                        CURRENT LOCATION
-                      </span>
+                      <span className={styles.tileTitle}>CURRENT LOCATION</span>
                     </div>
                     {openTile === "loc" ? (
                       <IoChevronUp className={styles.tileChevron} />
@@ -221,9 +251,7 @@ function WorkerDetails() {
                     )}
                   </div>
                   {openTile === "att" && (
-                    <div className={styles.tileContent}>
-                      {worker.attendance}%
-                    </div>
+                    <div className={styles.tileContent}>{worker.attendance}%</div>
                   )}
                 </div>
               </div>
@@ -312,8 +340,8 @@ function WorkerDetails() {
               </div>
             </section>
 
-            {/* ✅ ROW 3: Map */}
-            <section className={styles.rowThree}>
+            {/* ROW 3: Map */}
+            <section className="mb-3 p-4">
               <h3>Live Worker Location</h3>
               {worker?.latitude && worker?.longitude ? (
                 <MapContainer
@@ -341,6 +369,15 @@ function WorkerDetails() {
           </>
         )}
       </main>
+
+      <footer
+        className={`app-footer text-center ${
+          collapsed ? "footer-collapsed" : "footer-expanded"
+        }`}
+      >
+        © {new Date().getFullYear()} Designed and Developed by{" "}
+        <strong>Milieu</strong>. All rights reserved.
+      </footer>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import styles from "./TruckDetails.module.css";
 import { FaBell } from "react-icons/fa";
+import { FiSun, FiMoon } from "react-icons/fi";
 import {
   IoLocationOutline,
   IoChevronDown,
@@ -29,7 +30,7 @@ import L from "leaflet";
 const API_URL =
   process.env.REACT_APP_API_URL || "https://trackingbackend-7fvy.onrender.com";
 
-// ✅ Fix leaflet icons
+// Fix leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -38,7 +39,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
-// ✅ Polygon helpers
+// polygon helpers (unchanged)
 function polygonArea(coords) {
   let area = 0;
   for (let i = 0; i < coords.length - 1; i++) {
@@ -52,7 +53,8 @@ function triangleArea(p1, p2, p3) {
   return Math.abs(
     (p1[0] * (p2[1] - p3[1]) +
       p2[0] * (p3[1] - p1[1]) +
-      p3[0] * (p1[1] - p2[1])) / 2
+      p3[0] * (p1[1] - p2[1])) /
+      2
   );
 }
 function isPointInside(point, polygon) {
@@ -77,9 +79,24 @@ function TruckDetails() {
   const [resolvedAddress, setResolvedAddress] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [openTile, setOpenTile] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ loader state
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Quarry boundary polygon
+  // Theme state (persisted)
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("milieu-theme") || "dark";
+    } catch {
+      return "dark";
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("milieu-theme", theme);
+    } catch {}
+  }, [theme]);
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  // Quarry boundary polygon (unchanged)
   const quarryBoundaryLatLng = [
     [15.585024, 79.822357],
     [15.584936, 79.823761],
@@ -94,7 +111,7 @@ function TruckDetails() {
     [15.585024, 79.822357],
   ];
 
-  // ✅ Fetch truck details
+  // Fetch truck details
   useEffect(() => {
     setTruck(null);
     setLogs([]);
@@ -109,8 +126,6 @@ function TruckDetails() {
         setLogs(res.data.logs || []);
         setTracker(res.data.tracker);
         setLocation(res.data.location);
-
-        // small delay so loader is visible
         setTimeout(() => setLoading(false), 500);
       })
       .catch((err) => {
@@ -119,15 +134,13 @@ function TruckDetails() {
       });
   }, [id]);
 
-  // ✅ Date change fetch
+  // Date change fetch
   const handleDateChange = (date) => {
     setSelectedDate(date);
     setLoading(true);
 
     axios
-      .get(
-        `${API_URL}/api/trucks/${id}?date=${date.toISOString().split("T")[0]}`
-      )
+      .get(`${API_URL}/api/trucks/${id}?date=${date.toISOString().split("T")[0]}`)
       .then((res) => {
         setLogs(res.data.logs || []);
         setTracker(res.data.tracker);
@@ -140,7 +153,7 @@ function TruckDetails() {
       });
   };
 
-  // ✅ Reverse Geocoding
+  // Reverse Geocoding
   useEffect(() => {
     if (tracker?.latitude && tracker?.longitude) {
       axios
@@ -166,21 +179,19 @@ function TruckDetails() {
 
   const isInside =
     tracker?.latitude && tracker?.longitude
-      ? isPointInside(
-          [tracker.latitude, tracker.longitude],
-          quarryBoundaryLatLng
-        )
+      ? isPointInside([tracker.latitude, tracker.longitude], quarryBoundaryLatLng)
       : false;
 
   const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
   const handleLogout = () => navigate("/");
 
   return (
-    <div className={styles.applayout}>
+    <div className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark}`}>
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
+        theme={theme}
       />
 
       <main
@@ -188,14 +199,12 @@ function TruckDetails() {
           collapsed ? styles.contentcollapsed : styles.contentexpanded
         }`}
       >
-        {/* ✅ Loader */}
         {loading ? (
           <div className={styles.loaderWrapper}>
             <div className={styles.loading}>Loading truck details...</div>
           </div>
         ) : (
           <>
-            {/* --- HEADER --- */}
             <header className={styles.header}>
               <div className={styles.leftHead}>
                 <button className={styles.backBtn} onClick={() => navigate(-1)}>
@@ -210,6 +219,17 @@ function TruckDetails() {
                   <span className={styles.badge}>5</span>
                   <FaBell />
                 </div>
+
+                {/* Theme toggle beside notification */}
+                <button
+                  onClick={toggleTheme}
+                  className={styles.themeToggle}
+                  aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                  title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                >
+                  {theme === "dark" ? <FiSun /> : <FiMoon />}
+                </button>
+
                 <img
                   src={`${API_URL}/uploads/1.jpg`}
                   alt="User"
@@ -219,18 +239,18 @@ function TruckDetails() {
               </div>
             </header>
 
-            {/* --- ROW 1: Hero + Dropdowns --- */}
+            {/* ROW 1 */}
             <section className={styles.rowOne}>
               <div className={styles.heroCard}>
                 <div className={styles.heroText}>
-                  <h1 className={styles.heroName}>{truck.name}</h1>
-                  <span className={styles.rolePill}>{truck.role}</span>
-                  <p className={styles.heroDesc}>{truck.description}</p>
+                  <h1 className={styles.heroName}>{truck?.name}</h1>
+                  <span className={styles.rolePill}>{truck?.role}</span>
+                  <p className={styles.heroDesc}>{truck?.description}</p>
                 </div>
 
                 <img
-                  src={`${API_URL}${truck.image_url}`}
-                  alt={truck.name}
+                  src={`${API_URL}${truck?.image_url || "/uploads/placeholder.jpg"}`}
+                  alt={truck?.name}
                   className={styles.heroImg}
                   onError={(e) =>
                     (e.currentTarget.src = `${API_URL}/uploads/placeholder.jpg`)
@@ -239,13 +259,10 @@ function TruckDetails() {
                 <div className={styles.heroGlow} />
               </div>
 
-              {/* Stat dropdowns */}
               <div className={styles.statStack}>
                 {/* Current Location */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "loc" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""}`}
                   onClick={() => toggleTile("loc")}
                 >
                   <div className={styles.tileHeader}>
@@ -259,16 +276,12 @@ function TruckDetails() {
                       <IoChevronDown className={styles.tileChevron} />
                     )}
                   </div>
-                  {openTile === "loc" && (
-                    <div className={styles.tileContent}>{currentLocation}</div>
-                  )}
+                  {openTile === "loc" && <div className={styles.tileContent}>{currentLocation}</div>}
                 </div>
 
                 {/* Condition */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "cond" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "cond" ? styles.open : ""}`}
                   onClick={() => toggleTile("cond")}
                 >
                   <div className={styles.tileHeader}>
@@ -276,17 +289,9 @@ function TruckDetails() {
                       <span className={styles.tileIcon}>⚙️</span>
                       <span className={styles.tileTitle}>CONDITION</span>
                     </div>
-                    {openTile === "cond" ? (
-                      <IoChevronUp className={styles.tileChevron} />
-                    ) : (
-                      <IoChevronDown className={styles.tileChevron} />
-                    )}
+                    {openTile === "cond" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
-                  {openTile === "cond" && (
-                    <div className={styles.tileContent}>
-                      {latestLog ? latestLog.state : "N/A"}
-                    </div>
-                  )}
+                  {openTile === "cond" && <div className={styles.tileContent}>{latestLog ? latestLog.state : "N/A"}</div>}
                 </div>
               </div>
             </section>
@@ -427,7 +432,7 @@ function TruckDetails() {
             </div>
 
             {/* --- MAP --- */}
-            <div className={styles.container4}>
+            <div className=' p-3 mb-5'>
               <h6 style={{ color: "white" }}>Live Truck Location</h6>
               {tracker ? (
                 <div style={{ height: "400px", width: "100%" }}>
@@ -464,6 +469,19 @@ function TruckDetails() {
           </>
         )}
       </main>
+
+       <div className="mt-2">
+             <footer
+        className={`app-footer text-center ${
+          collapsed ? "footer-collapsed" : "footer-expanded"
+        }`}
+      >
+        © {new Date().getFullYear()} Designed and Developed by{" "}
+        <strong>Milieu</strong>. All rights reserved.
+      </footer>
+        </div>
+
+      
     </div>
   );
 }

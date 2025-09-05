@@ -1,12 +1,16 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import logo from "./logo.png";       // main logo (expanded)
+import sideLogo from "./Sidelogo.png"; // collapsed logo
+
+
 
 export default function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     // Clear login state
-    localStorage.removeItem("isAuthenticated"); 
+    localStorage.removeItem("isAuthenticated");
 
     // Redirect to login
     navigate("/login", { replace: true });
@@ -14,6 +18,19 @@ export default function Sidebar({ collapsed, onToggle }) {
 
   return (
     <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>
+      {/* ✅ Logo at the top (switches when collapsed) */}
+      <div className="sidebar-logo">
+        {collapsed ? (
+          <img
+            src={sideLogo}
+            alt="Side Logo"
+            className="logo-img collapsed-logo m-2"
+          />
+        ) : (
+          <img src={logo} alt="Main Logo" className="logo-img m-2" />
+        )}
+      </div>
+
       {/* Header with toggle */}
       <div className="sidebar-header">
         <button

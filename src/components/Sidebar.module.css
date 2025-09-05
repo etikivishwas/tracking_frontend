@@ -1,10 +1,9 @@
-/* Sidebar background */
+
 .app-sidebar {
   background-color: #008000; /* Green background */
   color: white;
 }
 
-/* Active link highlight */
 .sidebar-link.active {
   background-color: #006400; /* Darker green when active */
   color: #fff;
@@ -24,4 +23,21 @@
 /* Profile border or highlight */
 .profile-img {
   border: 2px solid #32CD32; /* Lime green border */
+}
+
+.sidebar-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px !important;
+}
+
+.logo-img {
+  width: 120px;  
+  height: auto;
+}
+
+.collapsed-logo {
+  width: 40px;   
+  height: auto;
 }

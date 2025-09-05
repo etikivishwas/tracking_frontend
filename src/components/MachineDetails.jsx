@@ -4,6 +4,7 @@ import axios from "axios";
 import Sidebar from "./Sidebar";
 import styles from "./MachineDetails.module.css";
 import { FaBell } from "react-icons/fa";
+import { FiSun, FiMoon } from "react-icons/fi";
 import {
   IoLocationOutline,
   IoCalendarOutline,
@@ -26,7 +27,7 @@ import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
-// ✅ Fix default Leaflet marker issue
+// Fix default Leaflet marker issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -49,41 +50,51 @@ function MachineDetails() {
   const [resolvedAddress, setResolvedAddress] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [openTile, setOpenTile] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ loader state
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch machine details
-// ✅ Fetch machine details
-useEffect(() => {
-  setMachine(null);
-  setLogs([]);
-  setBeacon(null);
-  setLoading(true);
+  // Theme state (persisted)
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("milieu-theme") || "dark";
+    } catch {
+      return "dark";
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("milieu-theme", theme);
+    } catch {}
+  }, [theme]);
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  axios
-    .get(`${API_URL}/machines/${id}`)
-    .then((res) => {
-      setMachine(res.data.machine);
-      setLogs(res.data.logs || []);
-      setBeacon(res.data.beacon);
+  // Fetch machine details
+  useEffect(() => {
+    setMachine(null);
+    setLogs([]);
+    setBeacon(null);
+    setLoading(true);
 
-      // ✅ small delay so loader shows even if API is fast
-      setTimeout(() => setLoading(false), 500);
-    })
-    .catch((err) => {
-      console.error("Error fetching machine:", err);
-      setLoading(false);
-    });
-}, [id]);
+    axios
+      .get(`${API_URL}/machines/${id}`)
+      .then((res) => {
+        setMachine(res.data.machine);
+        setLogs(res.data.logs || []);
+        setBeacon(res.data.beacon);
+        // small delay so loader shows even if API is fast
+        setTimeout(() => setLoading(false), 400);
+      })
+      .catch((err) => {
+        console.error("Error fetching machine:", err);
+        setLoading(false);
+      });
+  }, [id]);
 
-
-  // ✅ Date change fetch
+  // Date change fetch
   const handleDateChange = (date) => {
     setSelectedDate(date);
     setLoading(true);
     axios
-      .get(
-        `${API_URL}/machines/${id}?date=${date.toISOString().split("T")[0]}`
-      )
+      .get(`${API_URL}/machines/${id}?date=${date.toISOString().split("T")[0]}`)
       .then((res) => {
         setLogs(res.data.logs || []);
         setBeacon(res.data.beacon);
@@ -95,7 +106,7 @@ useEffect(() => {
       });
   };
 
-  // ✅ Reverse geocoding
+  // Reverse geocoding
   useEffect(() => {
     if (beacon?.latitude && beacon?.longitude) {
       axios
@@ -121,18 +132,21 @@ useEffect(() => {
   const handleLogout = () => navigate("/");
 
   return (
-    <div className={styles.applayout}>
+    <div
+      className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark}`}
+    >
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
+        theme={theme}
       />
+
       <main
         className={`${styles.appcontent} ${
           collapsed ? styles.contentcollapsed : styles.contentexpanded
         }`}
       >
-        {/* ✅ Loader */}
         {loading ? (
           <div className={styles.loading}>Loading machine details...</div>
         ) : (
@@ -146,11 +160,23 @@ useEffect(() => {
                 </button>
                 <button className={styles.badgeTab}>MACHINE INFO</button>
               </div>
+
               <div className={styles.rightHead}>
                 <div className={styles.notification}>
                   <span className={styles.badge}>5</span>
                   <FaBell />
                 </div>
+
+                {/* Theme toggle beside notification */}
+                <button
+                  onClick={toggleTheme}
+                  className={styles.themeToggle}
+                  aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                  title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                >
+                  {theme === "dark" ? <FiSun /> : <FiMoon />}
+                </button>
+
                 <img
                   src={`${API_URL}/uploads/1.jpg`}
                   alt="User"
@@ -182,9 +208,7 @@ useEffect(() => {
               <div className={styles.statStack}>
                 {/* Location */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "loc" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""}`}
                   onClick={() => toggleTile("loc")}
                 >
                   <div className={styles.tileHeader}>
@@ -201,9 +225,7 @@ useEffect(() => {
 
                 {/* Condition */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "cond" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "cond" ? styles.open : ""}`}
                   onClick={() => toggleTile("cond")}
                 >
                   <div className={styles.tileHeader}>
@@ -222,9 +244,7 @@ useEffect(() => {
 
                 {/* Coordinates */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "coords" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "coords" ? styles.open : ""}`}
                   onClick={() => toggleTile("coords")}
                 >
                   <div className={styles.tileHeader}>
@@ -266,8 +286,7 @@ useEffect(() => {
                     <div>
                       <span>Signal / Battery :</span>
                       <span>
-                        RSSI {beacon.rssi} | Tx {beacon.txPower} | Battery{" "}
-                        {beacon.batteryLevel}%
+                        RSSI {beacon.rssi} | Tx {beacon.txPower} | Battery {beacon.batteryLevel}%
                       </span>
                     </div>
                     <div>
@@ -289,7 +308,6 @@ useEffect(() => {
                 )}
               </div>
 
-              {/* Chart */}
               <div className={styles.chartCard}>
                 <h3>Operational Activity</h3>
                 <ResponsiveContainer width="100%" height={260}>
@@ -308,7 +326,6 @@ useEffect(() => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Hours */}
               <div className={styles.hoursCard}>
                 <h3>WORKING HOURS TODAY</h3>
                 <div className={styles.rings}>
@@ -326,7 +343,7 @@ useEffect(() => {
             </section>
 
             {/* ROW 3: Map */}
-            <section className={styles.rowThree}>
+            <section className="mb-3 p-4">
               <h3>Live Machine Location</h3>
               {beacon?.latitude && beacon?.longitude ? (
                 <MapContainer
@@ -338,8 +355,7 @@ useEffect(() => {
                   <Marker position={[beacon.latitude, beacon.longitude]}>
                     <Popup>
                       Machine is here 🏗️ <br />
-                      {resolvedAddress ||
-                        `${beacon.latitude}, ${beacon.longitude}`}
+                      {resolvedAddress || `${beacon.latitude}, ${beacon.longitude}`}
                     </Popup>
                   </Marker>
                 </MapContainer>
@@ -350,6 +366,14 @@ useEffect(() => {
           </>
         )}
       </main>
+
+      <footer
+        className={`app-footer text-center ${
+          collapsed ? "footer-collapsed" : "footer-expanded"
+        }`}
+      >
+        © {new Date().getFullYear()} Designed and Developed by <strong>Milieu</strong>. All rights reserved.
+      </footer>
     </div>
   );
 }

@@ -1,11 +1,60 @@
+/* ---------- Theme variables (defaults for dark) ---------- */
+.dashboard-root.theme-dark,
+.dashboard-root.theme-light {
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+.dashboard-root.theme-dark {
+  --bg: #000;
+  --surface: rgba(10,10,10,0.75);
+  --text: #fff;
+  --muted: #d9d9d9;
+  --tile-outline: rgba(255,255,255,0.06);
+  --accent: #00c853; /* green accent used for headings/icons */
+  --tile-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* Light theme */
+.dashboard-root.theme-light {
+  --bg: #ffffff;
+  --surface: #ffffffcc;
+  --text: #071014;
+  --muted: #000000;
+  --tile-outline: rgba(7,16,20,0.06);
+  --accent: #00c853; /* keep the same green accent */
+  --tile-shadow: 0 6px 18px rgba(14, 22, 24, 0.06);
+}
+
+/* Apply root variables to layout */
 .dashboard-root {
-  background: #000;
-  color: #fff;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
   position: relative;
   overflow: hidden;
+  transition: background-color 240ms ease, color 240ms ease;
 }
 
+/* ---------- Layout basics (kept/cleaned) ---------- */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+/* App content area adjustments */
+.app-content {
+  flex: 1 1 auto;
+  padding-top: 0;
+  transition: margin-left 220ms ease;
+}
+
+/* add small spacing when collapsed/expanded if your layout uses that */
+.content-collapsed { margin-left: 80px; }
+.content-expanded { margin-left: 240px; }
+
+/* ---------- Hero and headings ---------- */
 .dash-hero {
   max-width: 980px;
   margin: 0 auto;
@@ -19,37 +68,30 @@
   margin-bottom: 6px;
   position: relative;
   display: inline-block;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.12);
+  color: var(--accent); /* heading green as requested */
 }
 
+/* underline accent */
 .dash-title::after {
   content: "";
   display: block;
   height: 4px;
   width: 90%;
   margin: 10px auto 0;
-  background: linear-gradient(90deg, #00c853, rgba(0, 200, 83, 0.22));
+  background: linear-gradient(90deg, var(--accent), rgba(0, 200, 83, 0.22));
   border-radius: 999px;
 }
 
-
+/* subheading color adapts */
 .dash-sub {
   font-size: clamp(1rem, 1.6vw, 1.25rem);
-  color: #d9d9d9;
+  color: var(--muted);
   margin-bottom: 0;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+  text-shadow: none;
 }
 
-@keyframes floatBg {
-  from {
-    transform: translate3d(-2%, -1%, 0) scale(1);
-  }
-
-  to {
-    transform: translate3d(2%, 1%, 0) scale(1.05);
-  }
-}
-
+/* ---------- Tiles ---------- */
 .dashboard-tile {
   width: 100%;
   aspect-ratio: 16/10;
@@ -65,12 +107,12 @@
   isolation: isolate;
 }
 
-/* Card base styles */
+/* Improved card styling respects theme */
 .dashboard-tile.improved {
-  outline: 1px solid rgba(255, 255, 255, 0.06);
+  outline: 1px solid var(--tile-outline);
   box-shadow:
-    0 2px 10px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    var(--tile-shadow),
+    inset 0 0 0 1px var(--tile-outline);
   transform: translateZ(0);
   transition:
     transform 220ms ease,
@@ -79,67 +121,203 @@
     filter 220ms ease;
 }
 
-/* Vignette for better text contrast */
+/* -----------------------------
+   Important: remove full-tile overlay so images remain untouched
+   ----------------------------- */
 .dashboard-tile.improved::before {
+  /* no overlay here so background-image stays natural */
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg,
-      rgba(0, 0, 0, 0.05) 0%,
-      rgba(0, 0, 0, 0.55) 65%,
-      rgba(0, 0, 0, 0.88) 100%);
+  background: none;
   pointer-events: none;
   z-index: 0;
 }
 
-/* ================================
-   Text + icons inside card (no glass)
-================================== */
+/* Text + icons inside card — now gets its own local overlay */
 .tile-glass {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
-  padding: 0;
-  /* remove background box */
-  background: transparent;
-  /* no glass panel */
-  border: none;
-  box-shadow: none;
-  z-index: 1;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 14px;
+  /* create stacking context for the pseudo element */
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  justify-content: flex-end;
 }
 
+/* the actual vignette — placed between image and text */
+.tile-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 0 0 16px 16px; /* match tile radius on bottom */
+  pointer-events: none;
+  z-index: 1; /* below the text (z-index:2 of .tile-glass) but above the image */
+  /* default: subtle dark gradient so text pops on images */
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.0) 0%,
+    rgba(0, 0, 0, 0.35) 45%,
+    rgba(0, 0, 0, 0.65) 100%
+  );
+}
+
+/* Light theme: use a more subtle light vignette only if needed for contrast */
+.dashboard-root.theme-light .tile-glass::before {
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.0) 0%,
+    rgba(255,255,255,0.08) 45%,
+    rgba(255,255,255,0.16) 100%
+  );
+}
+
+/* make sure text sits above the vignette */
+.tile-glass > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* tile icon, title, sub */
 .tile-icon {
   font-size: 28px;
   margin-bottom: 6px;
-  color: #00c853;
-  /* brand accent */
+  color: var(--accent);
+  position: relative;
+  z-index: 2;
 }
 
 .tile-title {
   margin: 0;
   font-weight: 700;
   font-size: 1.3rem;
-  color: #fff;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-  /* ensures readability */
+  color: var(--text);
+  position: relative;
+  z-index: 2;
 }
 
 .tile-sub {
   margin: 2px 0 0;
-  color: #e0e0e0;
+  color: var(--muted);
   font-size: 0.95rem;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 2;
 }
 
-/* Hover interaction */
+/* subtle text-shadow to help on bright images (keeps images natural) */
+.tile-title,
+.tile-sub {
+  text-shadow: 0 2px 8px rgba(0,0,0,0.45);
+}
+
+/* ---------- Interactions ---------- */
 .dashboard-tile.improved:hover,
 .dashboard-tile.improved:focus-visible {
   transform: translateY(-4px);
   outline-color: rgba(0, 200, 83, 0.5);
   box-shadow:
-    0 18px 42px rgba(0, 0, 0, 0.65),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 0 0 1px rgba(0, 200, 83, 0.22);
-  filter: saturate(1.08);
+    0 18px 42px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 0 0 1px rgba(0, 200, 83, 0.08);
+  filter: saturate(1.06);
 }
+
+/* ---------- Footer ---------- */
+.app-footer {
+  padding: 18px 12px;
+  color: var(--muted);
+  background: transparent;
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+/* -------------------------------
+   Theme toggle (top-left)
+   ------------------------------- */
+.theme-toggle-wrap {
+  position: fixed;
+  top: 14px;
+  right: 14px;   /* ✅ moved to the right */
+  z-index: 9999;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  pointer-events: auto;
+}
+
+/* Toggle button */
+.theme-toggle {
+  height: 44px;
+  width: 44px;
+  border-radius: 10px;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 6px 16px rgba(2,8,23,0.12);
+  transition: transform 160ms ease, background 180ms ease, color 180ms ease;
+  font-size: 18px;
+}
+
+/* small badge showing current theme */
+.theme-badge {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.05), rgba(255,255,255,0.02));
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-width: 84px;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(2,8,23,0.06);
+}
+
+/* green dot */
+.theme-badge-dot {
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+}
+
+/* Theme text keeps green accent for the word (heading green) */
+.theme-badge-text {
+  color: var(--text);
+  margin-left: -2px;
+}
+
+/* touch / focus states for accessibility */
+.theme-toggle:focus {
+  outline: 3px solid rgba(0,200,83,0.18);
+  outline-offset: 2px;
+}
+
+
+@media (max-width: 576px) {
+  .theme-toggle-wrap { top: 10px; right: 10px; gap: 6px; } /* ✅ keep right side on small screens */
+  .theme-badge { display: none; } 
+}
+
+
+.dashboard-tile svg { color: var(--accent); }
+
+.dashboard-tile.improved:focus { outline: 3px solid rgba(0,200,83,0.12); outline-offset: 2px; }
+
+
+@media (max-width: 768px) {
+  .dash-title { font-size: clamp(1.8rem, 6vw, 2.4rem); }
+  .tile-title { font-size: 1.05rem; }
+}
+
+

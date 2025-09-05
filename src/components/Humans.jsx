@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Humans.module.css";
 import Sidebar from "./Sidebar";
 import { FaBell, FaSearch } from "react-icons/fa";
+import { FiSun, FiMoon } from "react-icons/fi";  // ✅ import icons
 import axios from "axios";
 import "../App.css";
 
@@ -19,8 +20,27 @@ function Humans() {
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [workers, setWorkers] = useState([]);
-  const [loading, setLoading] = useState(true); // ✅ loading state
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+
+  // ✅ theme state
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("milieu-theme") || "dark";
+    } catch {
+      return "dark";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("milieu-theme", theme);
+    } catch {}
+  }, [theme]);
+
+  const toggleTheme = () =>
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+
   const [formData, setFormData] = useState({
     name: "",
     role: "",
@@ -39,7 +59,11 @@ function Humans() {
     axios
       .get(`${API_URL}/api/workers`)
       .then((res) => {
-        setWorkers(res.data || []);
+        const normalized = (res.data || []).map((w) => ({
+          ...w,
+          id: w.id || w._id,
+        }));
+        setWorkers(normalized);
         setLoading(false);
       })
       .catch((err) => {
@@ -91,19 +115,24 @@ function Humans() {
       });
 
       const res = await axios.get(`${API_URL}/api/workers`);
-      setWorkers(res.data || []);
+      const normalized = (res.data || []).map((w) => ({
+        ...w,
+        id: w.id || w._id,
+      }));
+      setWorkers(normalized);
     } catch (err) {
       console.error("Error adding worker:", err);
     }
   };
 
   return (
-    <div className={styles.applayout}>
+    <div className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark}`}>
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
       />
+
       <div
         className={`${styles.appcontent} ${
           collapsed ? styles.contentcollapsed : styles.contentexpanded
@@ -119,6 +148,16 @@ function Humans() {
               <span className={styles.badge}>5</span>
               <FaBell />
             </div>
+
+        
+            <button
+              onClick={toggleTheme}
+              className={styles.themeToggle}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? <FiSun /> : <FiMoon />}
+            </button>
+
             <img
               src={`${API_URL}/uploads/1.jpg`}
               alt="User"
@@ -159,7 +198,7 @@ function Humans() {
             <div className={styles.cards}>
               {filteredWorkers.map((worker) => (
                 <div
-                  key={worker.id}
+                  key={worker.id} // ✅ always defined now
                   className={styles.card}
                   onClick={() => navigate(`/workers/${worker.id}`)}
                 >
@@ -280,6 +319,16 @@ function Humans() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer
+        className={`app-footer text-center ${
+          collapsed ? "footer-collapsed" : "footer-expanded"
+        }`}
+      >
+        © {new Date().getFullYear()} Designed and Developed by{" "}
+        <strong>Milieu</strong>. All rights reserved.
+      </footer>
     </div>
   );
 }

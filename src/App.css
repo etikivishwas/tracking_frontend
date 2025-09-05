@@ -155,3 +155,28 @@ body { background: black; }
 
 
 
+
+
+
+.app-footer {
+  background-color: #161616;
+  color: #fff;
+  padding: 12px;
+  font-size: 14px;
+  text-align: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: 40px;
+  line-height: 16px;
+}
+
+.footer-expanded {
+  width: calc(100% - 240px); 
+  margin-left: 240px;
+}
+
+.footer-collapsed {
+  width: calc(100% - 80px); 
+  margin-left: 80px;
+}

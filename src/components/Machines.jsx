@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Machines.module.css";
 import Sidebar from "./Sidebar";
 import { FaBell, FaSearch } from "react-icons/fa";
+import { FiSun, FiMoon } from "react-icons/fi";
 import Image from "./passport.jpg";
 import "../App.css";
 
@@ -13,7 +14,7 @@ function Machines() {
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [machines, setMachines] = useState([]);
-  const [loading, setLoading] = useState(true); // ✅ loader state
+  const [loading, setLoading] = useState(true); // loader state
   const [showForm, setShowForm] = useState(false);
   const [newMachine, setNewMachine] = useState({
     name: "",
@@ -22,7 +23,22 @@ function Machines() {
     image: "",
   });
 
-  // ✅ Fetch machines
+  // Theme state (persisted)
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("milieu-theme") || "dark";
+    } catch {
+      return "dark";
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("milieu-theme", theme);
+    } catch {}
+  }, [theme]);
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  // Fetch machines
   const fetchMachines = async () => {
     try {
       setLoading(true);
@@ -42,12 +58,8 @@ function Machines() {
 
   const filteredMachines = machines.filter(
     (machine) =>
-      (machine.name || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      (machine.role || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+      (machine.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (machine.role || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmit = async (e) => {
@@ -74,11 +86,16 @@ function Machines() {
   const handleLogout = () => navigate("/");
 
   return (
-    <div className={styles.applayout}>
+    <div
+      className={`${styles.applayout} ${
+        theme === "light" ? styles.light : styles.dark
+      }`}
+    >
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
+        theme={theme}
       />
 
       <div
@@ -96,6 +113,17 @@ function Machines() {
               <span className={styles.badge}>5</span>
               <FaBell />
             </div>
+
+            {/* Theme toggle button beside the bell */}
+            <button
+              onClick={toggleTheme}
+              className={styles.themeToggle}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? <FiSun /> : <FiMoon />}
+            </button>
+
             <img src={Image} alt="User" className={styles.avatar1} />
             <span className={styles.username}>Alex Kumar</span>
           </div>
@@ -126,7 +154,7 @@ function Machines() {
             </div>
           </div>
 
-          {/* ✅ Loader */}
+          {/* Loader */}
           {loading ? (
             <div className={styles.loading}>Loading machines...</div>
           ) : (
@@ -239,6 +267,15 @@ function Machines() {
           </div>
         </div>
       )}
+
+      <footer
+        className={`app-footer text-center ${
+          collapsed ? "footer-collapsed" : "footer-expanded"
+        }`}
+      >
+        © {new Date().getFullYear()} Designed and Developed by{" "}
+        <strong>Milieu</strong>. All rights reserved.
+      </footer>
     </div>
   );
 }
