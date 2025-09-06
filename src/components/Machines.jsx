@@ -6,7 +6,7 @@ import { FaBell, FaSearch,} from "react-icons/fa";
 import Image from "./passport.jpg";
 import "../App.css";
 
-const API_URL = "https://trackingbackend-7fvy.onrender.com"; // ✅ single base URL
+const API_URL = "https://trackingbackend-7fvy.onrender.com"; 
 
 function Machines() {
   const navigate = useNavigate();
