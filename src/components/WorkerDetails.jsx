@@ -21,6 +21,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -46,9 +48,9 @@ function WorkerDetails() {
   const [logs, setLogs] = useState([]);
   const [openTile, setOpenTile] = useState(null);
   const [resolvedAddress, setResolvedAddress] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
 
-  // Theme state (persisted)
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem("milieu-theme") || "dark";
@@ -56,24 +58,18 @@ function WorkerDetails() {
       return "dark";
     }
   });
-
   useEffect(() => {
     try {
       localStorage.setItem("milieu-theme", theme);
     } catch {}
   }, [theme]);
-
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  useEffect(() => {
-    // Reset when id changes
-    setWorker(null);
-    setLogs([]);
-    setResolvedAddress(null);
+  const fetchWorkerData = (date) => {
     setLoading(true);
-
+    const dateQuery = date ? `?date=${date.toISOString().split("T")[0]}` : "";
     axios
-      .get(`${API_URL}/api/workers/${id}`)
+      .get(`${API_URL}/api/workers/${id}${dateQuery}`)
       .then((res) => {
         setWorker(res.data.worker);
         setLogs(res.data.logs || []);
@@ -83,7 +79,16 @@ function WorkerDetails() {
         console.error(err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchWorkerData(selectedDate);
   }, [id]);
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    fetchWorkerData(date);
+  };
 
   // Reverse geocoding
   useEffect(() => {
@@ -99,7 +104,7 @@ function WorkerDetails() {
     }
   }, [worker]);
 
-  const todayHours = logs.length ? logs[logs.length - 1].hours_worked : 0;
+  const todayHours = logs.length ? logs.reduce((a, b) => a + b.hours_worked, 0) : 0;
   const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
   const handleLogout = () => navigate("/");
 
@@ -113,7 +118,7 @@ function WorkerDetails() {
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
-        theme={theme} // optional prop for Sidebar styling
+        theme={theme}
       />
 
       <main
@@ -141,7 +146,6 @@ function WorkerDetails() {
                   <FaBell />
                 </div>
 
-                {/* Theme toggle beside notification */}
                 <button
                   onClick={toggleTheme}
                   className={styles.themeToggle}
@@ -160,7 +164,7 @@ function WorkerDetails() {
               </div>
             </header>
 
-            {/* ROW 1: Hero + stat dropdowns */}
+            {/* ROW 1 */}
             <section className={styles.rowOne}>
               <div className={styles.heroCard}>
                 <div className={styles.heroText}>
@@ -181,11 +185,8 @@ function WorkerDetails() {
               </div>
 
               <div className={styles.statStack}>
-                {/* Location */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "loc" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""}`}
                   onClick={() => toggleTile("loc")}
                 >
                   <div className={styles.tileHeader}>
@@ -193,11 +194,7 @@ function WorkerDetails() {
                       <IoLocationOutline className={styles.tileIcon} />
                       <span className={styles.tileTitle}>CURRENT LOCATION</span>
                     </div>
-                    {openTile === "loc" ? (
-                      <IoChevronUp className={styles.tileChevron} />
-                    ) : (
-                      <IoChevronDown className={styles.tileChevron} />
-                    )}
+                    {openTile === "loc" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
                   {openTile === "loc" && (
                     <div className={styles.tileContent}>
@@ -209,11 +206,8 @@ function WorkerDetails() {
                   )}
                 </div>
 
-                {/* Days worked */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "days" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "days" ? styles.open : ""}`}
                   onClick={() => toggleTile("days")}
                 >
                   <div className={styles.tileHeader}>
@@ -221,22 +215,15 @@ function WorkerDetails() {
                       <IoCalendarOutline className={styles.tileIcon} />
                       <span className={styles.tileTitle}>DAYS WORKED</span>
                     </div>
-                    {openTile === "days" ? (
-                      <IoChevronUp className={styles.tileChevron} />
-                    ) : (
-                      <IoChevronDown className={styles.tileChevron} />
-                    )}
+                    {openTile === "days" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
                   {openTile === "days" && (
                     <div className={styles.tileContent}>28 Days</div>
                   )}
                 </div>
 
-                {/* Attendance */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "att" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "att" ? styles.open : ""}`}
                   onClick={() => toggleTile("att")}
                 >
                   <div className={styles.tileHeader}>
@@ -244,11 +231,7 @@ function WorkerDetails() {
                       <IoPeopleOutline className={styles.tileIcon} />
                       <span className={styles.tileTitle}>ATTENDANCE</span>
                     </div>
-                    {openTile === "att" ? (
-                      <IoChevronUp className={styles.tileChevron} />
-                    ) : (
-                      <IoChevronDown className={styles.tileChevron} />
-                    )}
+                    {openTile === "att" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
                   {openTile === "att" && (
                     <div className={styles.tileContent}>{worker.attendance}%</div>
@@ -257,14 +240,14 @@ function WorkerDetails() {
               </div>
             </section>
 
-            {/* ROW 2: Info / Today Actives / Hours */}
+            {/* ROW 2 */}
             <section className={styles.rowTwo}>
               <div className={styles.infoCard}>
                 <h3>Information</h3>
                 <div className={styles.infoGrid}>
                   <div>
                     <span>ID NO :</span>
-                    <span>{worker.id || worker._id || "AP12345679"}</span>
+                    <span>{worker.id || worker._id}</span>
                   </div>
                   <div>
                     <span>Gender :</span>
@@ -299,31 +282,36 @@ function WorkerDetails() {
                     <span>{worker.weight} kgs</span>
                   </div>
                 </div>
+                <div className={styles.datePickerWrapper}>
+                  <span>Select Date :</span>
+                  <DatePicker
+                    selected={selectedDate}
+                    onChange={handleDateChange}
+                    dateFormat="yyyy-MM-dd"
+                    className={styles.datePicker}
+                  />
+                </div>
                 <button className={styles.editBtn}>EDIT PROFILE</button>
               </div>
 
-              {/* Today Actives chart */}
               <div className={styles.chartCard}>
                 <h3>TODAY ACTIVES</h3>
-                <div className={styles.chartWrap}>
-                  <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={logs}>
-                      <XAxis dataKey="work_date" />
-                      <YAxis domain={[0, 12]} />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="hours_worked"
-                        stroke="#21e065"
-                        strokeWidth={2}
-                        dot={false}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={logs}>
+                    <XAxis dataKey="work_date" />
+                    <YAxis domain={[0, 12]} />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="hours_worked"
+                      stroke="#21e065"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
 
-              {/* Working hours today */}
               <div className={styles.hoursCard}>
                 <h3>WORKING HOURS TODAY</h3>
                 <div className={styles.rings}>
@@ -340,25 +328,20 @@ function WorkerDetails() {
               </div>
             </section>
 
-            {/* ROW 3: Map */}
+            {/* ROW 3 */}
             <section className="mb-3 p-4">
               <h3>Live Worker Location</h3>
               {worker?.latitude && worker?.longitude ? (
                 <MapContainer
                   center={[worker.latitude, worker.longitude]}
                   zoom={13}
-                  style={{
-                    height: "400px",
-                    width: "100%",
-                    borderRadius: "12px",
-                  }}
+                  style={{ height: "400px", width: "100%", borderRadius: "12px" }}
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <Marker position={[worker.latitude, worker.longitude]}>
                     <Popup>
                       {worker.name} is here 👷 <br />
-                      {resolvedAddress ||
-                        `${worker.latitude}, ${worker.longitude}`}
+                      {resolvedAddress || `${worker.latitude}, ${worker.longitude}`}
                     </Popup>
                   </Marker>
                 </MapContainer>
@@ -375,8 +358,7 @@ function WorkerDetails() {
           collapsed ? "footer-collapsed" : "footer-expanded"
         }`}
       >
-        © {new Date().getFullYear()} Designed and Developed by{" "}
-        <strong>Milieu</strong>. All rights reserved.
+        © {new Date().getFullYear()} Designed and Developed by <strong>Milieu</strong>. All rights reserved.
       </footer>
     </div>
   );

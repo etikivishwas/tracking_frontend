@@ -68,45 +68,34 @@ function MachineDetails() {
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   // Fetch machine details
-  useEffect(() => {
-    setMachine(null);
-    setLogs([]);
-    setBeacon(null);
+  const fetchMachineData = (date) => {
     setLoading(true);
-
+    const dateQuery = date ? `?date=${date.toISOString().split("T")[0]}` : "";
     axios
-      .get(`${API_URL}/machines/${id}`)
+      .get(`${API_URL}/machines/${id}${dateQuery}`)
       .then((res) => {
         setMachine(res.data.machine);
         setLogs(res.data.logs || []);
         setBeacon(res.data.beacon);
-        // small delay so loader shows even if API is fast
         setTimeout(() => setLoading(false), 400);
       })
       .catch((err) => {
         console.error("Error fetching machine:", err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchMachineData(selectedDate);
   }, [id]);
 
   // Date change fetch
   const handleDateChange = (date) => {
     setSelectedDate(date);
-    setLoading(true);
-    axios
-      .get(`${API_URL}/machines/${id}?date=${date.toISOString().split("T")[0]}`)
-      .then((res) => {
-        setLogs(res.data.logs || []);
-        setBeacon(res.data.beacon);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching logs:", err);
-        setLoading(false);
-      });
+    fetchMachineData(date);
   };
 
-  // Reverse geocoding
+  // Reverse geocoding for beacon
   useEffect(() => {
     if (beacon?.latitude && beacon?.longitude) {
       axios
@@ -167,7 +156,6 @@ function MachineDetails() {
                   <FaBell />
                 </div>
 
-                {/* Theme toggle beside notification */}
                 <button
                   onClick={toggleTheme}
                   className={styles.themeToggle}
@@ -186,7 +174,7 @@ function MachineDetails() {
               </div>
             </header>
 
-            {/* ROW 1: Hero + Stat dropdowns */}
+            {/* ROW 1: Hero + Stats */}
             <section className={styles.rowOne}>
               <div className={styles.heroCard}>
                 <div className={styles.heroText}>
@@ -319,8 +307,7 @@ function MachineDetails() {
                       type="monotone"
                       dataKey="hours_worked"
                       stroke="#21e065"
-                      fill="rgba(21, 232, 32, 1)"
-                      fillOpacity={0.3}
+                      fill="rgba(21, 232, 32, 0.3)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
