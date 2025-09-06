@@ -1,18 +1,36 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import logo from "./logo.png";       // main logo (expanded)
+import sideLogo from "./Sidelogo.png"; // collapsed logo
+
+
 
 export default function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // clear session/local storage if used
-    localStorage.removeItem("token"); 
-    // navigate to login
-    navigate("/login");
+    // Clear login state
+    localStorage.removeItem("isAuthenticated");
+
+    // Redirect to login
+    navigate("/login", { replace: true });
   };
 
   return (
     <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>
+      {/* ✅ Logo at the top (switches when collapsed) */}
+      <div className="sidebar-logo">
+        {collapsed ? (
+          <img
+            src={sideLogo}
+            alt="Side Logo"
+            className="logo-img collapsed-logo m-2"
+          />
+        ) : (
+          <img src={logo} alt="Main Logo" className="logo-img m-2" />
+        )}
+      </div>
+
       {/* Header with toggle */}
       <div className="sidebar-header">
         <button
@@ -30,26 +48,42 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        <NavLink to="/dashboard" className={({ isActive }) =>
-          `sidebar-link ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
           <i className="bi bi-speedometer2"></i>
           <span className="label">Dashboard</span>
         </NavLink>
 
-        <NavLink to="/humans" className={({ isActive }) =>
-          `sidebar-link ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/humans"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
           <i className="bi bi-people-fill"></i>
           <span className="label">Workers</span>
         </NavLink>
 
-        <NavLink to="/machines" className={({ isActive }) =>
-          `sidebar-link ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/machines"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
           <i className="bi bi-gear-fill"></i>
           <span className="label">Machines</span>
         </NavLink>
 
-        <NavLink to="/trucks" className={({ isActive }) =>
-          `sidebar-link ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/trucks"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
+        >
           <i className="bi bi-truck"></i>
           <span className="label">Trucks</span>
         </NavLink>

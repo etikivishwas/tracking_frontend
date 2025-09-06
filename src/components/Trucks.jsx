@@ -3,17 +3,19 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Trucks.module.css";
 import Sidebar from "./Sidebar";
 import { FaBell, FaSearch } from "react-icons/fa";
+import { FiSun, FiMoon } from "react-icons/fi";
 import Image from "./passport.jpg";
 import "../App.css";
 import axios from "axios";
 
-const API_URL = "https://trackingbackend-7fvy.onrender.com"; // update when deployed
+const API_URL = "https://trackingbackend-7fvy.onrender.com";
 
 function Trucks() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [trucks, setTrucks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -23,12 +25,34 @@ function Trucks() {
     image: null,
   });
 
+  // Theme (persisted)
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem("milieu-theme") || "dark";
+    } catch {
+      return "dark";
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("milieu-theme", theme);
+    } catch {}
+  }, [theme]);
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
   // Fetch trucks
   useEffect(() => {
+    setLoading(true);
     axios
       .get(`${API_URL}/api/trucks`)
-      .then((res) => setTrucks(res.data))
-      .catch((err) => console.error(err));
+      .then((res) => {
+        setTrucks(res.data || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   }, []);
 
   const filteredTrucks = trucks.filter(
@@ -63,6 +87,7 @@ function Trucks() {
       setShowModal(false);
       setFormData({ name: "", role: "", description: "", image: null });
 
+      // Refresh trucks list
       const res = await axios.get(`${API_URL}/api/trucks`);
       setTrucks(res.data || []);
     } catch (err) {
@@ -71,28 +96,46 @@ function Trucks() {
   };
 
   return (
-    <div className={styles.applayout}>
-      {/* Sidebar */}
+    <div
+      className={`${styles.applayout} ${
+        theme === "light" ? styles.light : styles.dark
+      }`}
+    >
+      {/* Sidebar (optional: it can accept theme prop if you update Sidebar) */}
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         onLogout={handleLogout}
+        theme={theme}
       />
 
       <div
-        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
-          }`}
+        className={`${styles.appcontent} ${
+          collapsed ? styles.contentcollapsed : styles.contentexpanded
+        }`}
       >
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.title}>
             <h2>Vehicles Management</h2>
           </div>
+
           <div className={styles.profile}>
             <div className={styles.notification}>
               <span className={styles.badge}>5</span>
               <FaBell />
             </div>
+
+            {/* Theme toggle beside notification */}
+            <button
+              onClick={toggleTheme}
+              className={styles.themeToggle}
+              aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? <FiSun /> : <FiMoon />}
+            </button>
+
             <img src={Image} alt="User" className={styles.avatar1} />
             <span className={styles.username}>Alex Kumar</span>
           </div>
@@ -123,33 +166,43 @@ function Trucks() {
             </div>
           </div>
 
-
-          {/* Cards */}
-          <div className={styles.cards}>
-            {filteredTrucks.map((truck) => (
-              <div
-                key={truck.id}
-                className={styles.card}
-                onClick={() => navigate(`/trucks/${truck.id}`)}
-              >
-                <div className={styles.profileHeader}>
-                  <img
-                    src={`${API_URL}${truck.image_url}`}
-                    alt={truck.name}
-                    className={styles.avatar}
-                  />
-                  <div>
-                    <h4 className={styles.name}>{truck.name}</h4>
-                    <span className={styles.role}>{truck.role}</span>
+          {/* Loading */}
+          {loading ? (
+            <div className={styles.loading}>Loading trucks…</div>
+          ) : (
+            <div className={styles.cards}>
+              {filteredTrucks.map((truck) => (
+                <div
+                  key={truck.id || truck._id}
+                  className={styles.card}
+                  onClick={() => navigate(`/trucks/${truck.id || truck._id}`)}
+                >
+                  <div className={styles.profileHeader}>
+                    <img
+                      src={
+                        truck.image_url?.startsWith("http")
+                          ? truck.image_url
+                          : `${API_URL}${truck.image_url}`
+                      }
+                      alt={truck.name}
+                      className={styles.avatar}
+                      onError={(e) =>
+                        (e.currentTarget.src = `${API_URL}/uploads/placeholder.jpg`)
+                      }
+                    />
+                    <div>
+                      <h4 className={styles.name}>{truck.name}</h4>
+                      <span className={styles.role}>{truck.role}</span>
+                    </div>
                   </div>
+                  <p className={styles.description}>{truck.description}</p>
                 </div>
-                <p className={styles.description}>{truck.description}</p>
-              </div>
-            ))}
-            {!filteredTrucks.length && (
-              <div className={styles.noData}>No vehicles found.</div>
-            )}
-          </div>
+              ))}
+              {!filteredTrucks.length && (
+                <div className={styles.noData}>No vehicles found.</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -210,6 +263,14 @@ function Trucks() {
         </div>
       )}
 
+      <footer
+        className={`app-footer text-center ${
+          collapsed ? "footer-collapsed" : "footer-expanded"
+        }`}
+      >
+        © {new Date().getFullYear()} Designed and Developed by{" "}
+        <strong>Milieu</strong>. All rights reserved.
+      </footer>
     </div>
   );
 }

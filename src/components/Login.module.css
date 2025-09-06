@@ -2,9 +2,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background: #f1d1d1; /* light background */
+  min-height: 100vh;
+
+  /* Background Image */
+  background: url("https://d2n41s0wa71yzf.cloudfront.net/wp-content/uploads/2022/04/04131056/Gold-Mine_Adobe-scaled-e1643707309450.jpeg") no-repeat center center fixed;
+  background-size: cover;
 }
+
+
 
 .loginCard {
   background: #2c2c2c;
@@ -71,4 +76,15 @@
   font-size: 0.9rem;
   color: #bbb;
   cursor: pointer;
+}
+
+.logoWrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.logo {
+  width: 200px; /* adjust size as needed */
+  height: auto;
 }

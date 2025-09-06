@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
 import axios from "axios";
+import logo from "./logo.png"; 
 
 function Login({ setIsAuthenticated }) {
   const [email, setEmail] = useState(""); // login with email
@@ -34,6 +35,16 @@ function Login({ setIsAuthenticated }) {
   return (
     <div className={styles.container}>
       <div className={styles.loginCard}>
+        {/* ✅ Logo on top center */}
+        <div className={styles.logoWrapper}>
+          <img src={logo} alt="App Logo" className={styles.logo} />
+        </div>
+
+        {/* Theme toggle button (top-right of card). Reuse this component across pages. */}
+        <div className={styles.themeWrapper}>
+          <ThemeToggle />
+        </div>
+
         <div className={styles.tabHeader}>
           <span className={styles.activeTab}>USER SIGN IN</span>
         </div>
@@ -75,4 +86,36 @@ function Login({ setIsAuthenticated }) {
   );
 }
 
+// ThemeToggle: handles localStorage + data-theme on document.documentElement.
+// Default remains "dark" (so current dark look is preserved); user can switch to "light".
+function ThemeToggle() {
+  const [theme, setTheme] = useState(() => {
+    return (typeof window !== "undefined" && localStorage.getItem("theme")) || "dark";
+  });
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme", theme);
+    }
+  }, [theme]);
+
+  const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+
+  return (
+    <button
+      type="button"
+      className={styles.themeToggle}
+      onClick={toggle}
+      aria-label="Toggle theme"
+      title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+    >
+      {theme === "dark" ? "Light Mode" : "Dark Mode"}
+    </button>
+  );
+}
+
 export default Login;
+export { ThemeToggle };
