@@ -113,6 +113,7 @@ function TruckDetails() {
 
   // Fetch truck details
   useEffect(() => {
+    console.log("Fetching truck details for ID:", id); // Log the truck ID
     setTruck(null);
     setLogs([]);
     setTracker(null);
@@ -122,33 +123,36 @@ function TruckDetails() {
     axios
       .get(`${API_URL}/api/trucks/${id}`)
       .then((res) => {
+        console.log("API response for truck details:", res.data); // Log the API response
         setTruck(res.data.truck);
         setLogs(res.data.logs || []);
-        setTracker(res.data.tracker);
-        setLocation(res.data.location);
+        setTracker(res.data.tracker?.[0] || null); // Use the first tracker object
+        setLocation(res.data.location || null);
         setTimeout(() => setLoading(false), 500);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error fetching truck details:", err); // Log the error
         setLoading(false);
       });
   }, [id]);
 
   // Date change fetch
   const handleDateChange = (date) => {
+    console.log("Fetching truck data for date:", date); // Log the selected date
     setSelectedDate(date);
     setLoading(true);
 
     axios
       .get(`${API_URL}/api/trucks/${id}?date=${date.toISOString().split("T")[0]}`)
       .then((res) => {
+        console.log("API response for truck data on date:", res.data); // Log the API response
         setLogs(res.data.logs || []);
         setTracker(res.data.tracker);
         setLocation(res.data.location);
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error fetching truck data for date:", err); // Log the error
         setLoading(false);
       });
   };
@@ -156,11 +160,13 @@ function TruckDetails() {
   // Reverse Geocoding
   useEffect(() => {
     if (tracker?.latitude && tracker?.longitude) {
+      console.log("Performing reverse geocoding for:", tracker.latitude, tracker.longitude); // Log coordinates
       axios
         .get(
           `https://nominatim.openstreetmap.org/reverse?lat=${tracker.latitude}&lon=${tracker.longitude}&format=json`
         )
         .then((res) => {
+          console.log("Reverse geocoding response:", res.data); // Log the response
           if (res.data?.display_name) {
             setResolvedAddress(res.data.display_name);
           }
@@ -432,12 +438,12 @@ function TruckDetails() {
             </div>
 
             {/* --- MAP --- */}
-            <div className=' p-3 mb-5'>
+            <div className="p-3 mb-5">
               <h6 style={{ color: "white" }}>Live Truck Location</h6>
-              {tracker ? (
+              {tracker && tracker.latitude && tracker.longitude ? ( // Ensure valid coordinates
                 <div style={{ height: "400px", width: "100%" }}>
                   <MapContainer
-                    center={[tracker.latitude, tracker.longitude]}
+                    center={[tracker.latitude, tracker.longitude]} // Use tracker latitude and longitude
                     zoom={15}
                     style={{
                       height: "100%",

@@ -50,6 +50,7 @@ function WorkerDetails() {
   const [resolvedAddress, setResolvedAddress] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState(null);
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -68,15 +69,40 @@ function WorkerDetails() {
   const fetchWorkerData = (date) => {
     setLoading(true);
     const dateQuery = date ? `?date=${date.toISOString().split("T")[0]}` : "";
+    console.log("Fetching worker data for ID:", id); // Log worker ID
+    console.log("Date query:", dateQuery); // Log date query string
+
     axios
       .get(`${API_URL}/api/workers/${id}${dateQuery}`)
       .then((res) => {
+        console.log("API response for worker data:", res.data); // Log API response
         setWorker(res.data.worker);
         setLogs(res.data.logs || []);
+        setLocation(res.data.location || null);
         setLoading(false);
+
+        // Perform reverse geocoding for the location's latitude and longitude
+        if (res.data.location.latitude && res.data.location.longitude) {
+          console.log(
+            "Performing reverse geocoding for:",
+            res.data.location.latitude,
+            res.data.location.longitude
+          ); // Log coordinates
+          axios
+            .get(
+              `https://nominatim.openstreetmap.org/reverse?lat=${res.data.location.latitude}&lon=${res.data.location.longitude}&format=json`
+            )
+            .then((geoRes) => {
+              console.log("Reverse geocoding response:", geoRes.data); // Log reverse geocoding response
+              if (geoRes.data?.display_name) {
+                setResolvedAddress(geoRes.data.display_name);
+              }
+            })
+            .catch((err) => console.error("Reverse geocoding failed:", err));
+        }
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error fetching worker data:", err); // Log error
         setLoading(false);
       });
   };
@@ -89,20 +115,6 @@ function WorkerDetails() {
     setSelectedDate(date);
     fetchWorkerData(date);
   };
-
-  // Reverse geocoding
-  useEffect(() => {
-    if (worker?.latitude && worker?.longitude) {
-      axios
-        .get(
-          `https://nominatim.openstreetmap.org/reverse?lat=${worker.latitude}&lon=${worker.longitude}&format=json`
-        )
-        .then((res) => {
-          if (res.data?.display_name) setResolvedAddress(res.data.display_name);
-        })
-        .catch((err) => console.error("Reverse geocoding failed:", err));
-    }
-  }, [worker]);
 
   const todayHours = logs.length ? logs.reduce((a, b) => a + b.hours_worked, 0) : 0;
   const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
@@ -199,8 +211,8 @@ function WorkerDetails() {
                   {openTile === "loc" && (
                     <div className={styles.tileContent}>
                       {resolvedAddress ||
-                        (worker.latitude && worker.longitude
-                          ? `${worker.latitude}, ${worker.longitude}`
+                        (location.latitude && location.longitude
+                          ? `${location.latitude}, ${location.longitude}`
                           : "Unknown")}
                     </div>
                   )}
@@ -331,21 +343,38 @@ function WorkerDetails() {
             {/* ROW 3 */}
             <section className="mb-3 p-4">
               <h3>Live Worker Location</h3>
-              {worker?.latitude && worker?.longitude ? (
+              {location?.latitude && location?.longitude ? (
+                console.log("Rendering map with coordinates:", {
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                }),
                 <MapContainer
-                  center={[worker.latitude, worker.longitude]}
-                  zoom={13}
+                  center={[
+                    parseFloat(location.latitude),
+                    parseFloat(location.longitude),
+                  ]} // Ensure latitude and longitude are parsed as numbers
+                  zoom={15}
                   style={{ height: "400px", width: "100%", borderRadius: "12px" }}
                 >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker position={[worker.latitude, worker.longitude]}>
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <Marker
+                    position={[
+                      parseFloat(location.latitude),
+                      parseFloat(location.longitude),
+                    ]}
+                  >
                     <Popup>
                       {worker.name} is here 👷 <br />
-                      {resolvedAddress || `${worker.latitude}, ${worker.longitude}`}
+                      {resolvedAddress ||
+                        `${location.latitude}, ${location.longitude}`}
                     </Popup>
                   </Marker>
                 </MapContainer>
               ) : (
+                console.log("No valid location data available:", worker),
                 <p>No location available</p>
               )}
             </section>

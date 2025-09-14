@@ -51,6 +51,7 @@ function Humans() {
     blood_group: "",
     date_of_join: "",
     image: null,
+    deviceId: "", // <-- Added deviceId field
   });
 
   // Fetch workers
@@ -300,6 +301,14 @@ function Humans() {
                 name="date_of_join"
                 value={formData.date_of_join}
                 onChange={handleChange}
+              />
+              <input
+                type="text"
+                name="deviceId"
+                placeholder="Device ID"
+                value={formData.deviceId}
+                onChange={handleChange}
+                required
               />
               <input type="file" name="image" onChange={handleChange} />
 

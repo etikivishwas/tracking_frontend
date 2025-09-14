@@ -24,7 +24,13 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "leaflet/dist/leaflet.css";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  LayersControl,
+} from "react-leaflet";
 import L from "leaflet";
 
 // Fix default Leaflet marker issue
@@ -36,8 +42,18 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
+const { BaseLayer } = LayersControl;
+
 const API_URL =
   process.env.REACT_APP_API_URL || "https://trackingbackend-7fvy.onrender.com";
+
+// 📍 Predefined Gateway coordinates
+const gatewayCoords = {
+  "Gateway-A": { lat: 15.585108, lon: 79.825956 },
+  "Gateway-B": { lat: 15.585979, lon: 79.826868 },
+  "Gateway-C": { lat: 15.585958, lon: 79.825935 },
+  "Gateway-D": { lat: 15.586149, lon: 79.826879 },
+};
 
 function MachineDetails() {
   const { id } = useParams();
@@ -51,6 +67,7 @@ function MachineDetails() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [openTile, setOpenTile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState(null);
 
   // Theme state (persisted)
   const [theme, setTheme] = useState(() => {
@@ -77,6 +94,7 @@ function MachineDetails() {
         setMachine(res.data.machine);
         setLogs(res.data.logs || []);
         setBeacon(res.data.beacon);
+        setLocation(res.data.location || []);
         setTimeout(() => setLoading(false), 400);
       })
       .catch((err) => {
@@ -95,12 +113,12 @@ function MachineDetails() {
     fetchMachineData(date);
   };
 
-  // Reverse geocoding for beacon
+  // Reverse geocoding for location
   useEffect(() => {
-    if (beacon?.latitude && beacon?.longitude) {
+    if (location?.latitude && location?.longitude) {
       axios
         .get(
-          `https://nominatim.openstreetmap.org/reverse?lat=${beacon.latitude}&lon=${beacon.longitude}&format=json`,
+          `https://nominatim.openstreetmap.org/reverse?lat=${location.latitude}&lon=${location.longitude}&format=json`,
           { headers: { "User-Agent": "MachineApp/1.0 (contact@example.com)" } }
         )
         .then((res) => {
@@ -108,13 +126,13 @@ function MachineDetails() {
         })
         .catch((err) => console.error("Reverse geocoding failed:", err));
     }
-  }, [beacon]);
+  }, [location]);
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
   const todayHours = latestLog ? latestLog.hours_worked : 0;
   const currentLocation =
     resolvedAddress ||
-    beacon?.location ||
+    location?.name ||
     (latestLog ? latestLog.current_location : "N/A");
 
   const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
@@ -122,7 +140,9 @@ function MachineDetails() {
 
   return (
     <div
-      className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark}`}
+      className={`${styles.applayout} ${
+        theme === "light" ? styles.light : styles.dark
+      }`}
     >
       <Sidebar
         collapsed={collapsed}
@@ -159,7 +179,9 @@ function MachineDetails() {
                 <button
                   onClick={toggleTheme}
                   className={styles.themeToggle}
-                  aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                  aria-label={`Switch to ${
+                    theme === "dark" ? "light" : "dark"
+                  } mode`}
                   title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
                 >
                   {theme === "dark" ? <FiSun /> : <FiMoon />}
@@ -196,7 +218,9 @@ function MachineDetails() {
               <div className={styles.statStack}>
                 {/* Location */}
                 <div
-                  className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""}`}
+                  className={`${styles.statTile} ${
+                    openTile === "loc" ? styles.open : ""
+                  }`}
                   onClick={() => toggleTile("loc")}
                 >
                   <div className={styles.tileHeader}>
@@ -213,7 +237,9 @@ function MachineDetails() {
 
                 {/* Condition */}
                 <div
-                  className={`${styles.statTile} ${openTile === "cond" ? styles.open : ""}`}
+                  className={`${styles.statTile} ${
+                    openTile === "cond" ? styles.open : ""
+                  }`}
                   onClick={() => toggleTile("cond")}
                 >
                   <div className={styles.tileHeader}>
@@ -232,7 +258,9 @@ function MachineDetails() {
 
                 {/* Coordinates */}
                 <div
-                  className={`${styles.statTile} ${openTile === "coords" ? styles.open : ""}`}
+                  className={`${styles.statTile} ${
+                    openTile === "coords" ? styles.open : ""
+                  }`}
                   onClick={() => toggleTile("coords")}
                 >
                   <div className={styles.tileHeader}>
@@ -240,12 +268,16 @@ function MachineDetails() {
                       <IoCalendarOutline className={styles.tileIcon} />
                       <span className={styles.tileTitle}>LAT, LONG</span>
                     </div>
-                    {openTile === "coords" ? <IoChevronUp /> : <IoChevronDown />}
+                    {openTile === "coords" ? (
+                      <IoChevronUp />
+                    ) : (
+                      <IoChevronDown />
+                    )}
                   </div>
                   {openTile === "coords" && (
                     <div className={styles.tileContent}>
-                      {beacon?.latitude && beacon?.longitude
-                        ? `${beacon.latitude}, ${beacon.longitude}`
+                      {location?.latitude && location?.longitude
+                        ? `${location.latitude}, ${location.longitude}`
                         : "N/A"}
                     </div>
                   )}
@@ -274,7 +306,8 @@ function MachineDetails() {
                     <div>
                       <span>Signal / Battery :</span>
                       <span>
-                        RSSI {beacon.rssi} | Tx {beacon.txPower} | Battery {beacon.batteryLevel}%
+                        RSSI {beacon.rssi} | Tx {beacon.txPower} | Battery{" "}
+                        {beacon.batteryLevel}%
                       </span>
                     </div>
                     <div>
@@ -332,17 +365,87 @@ function MachineDetails() {
             {/* ROW 3: Map */}
             <section className="mb-3 p-4">
               <h3>Live Machine Location</h3>
-              {beacon?.latitude && beacon?.longitude ? (
+              {location?.latitude && location?.longitude ? (
                 <MapContainer
-                  center={[beacon.latitude, beacon.longitude]}
-                  zoom={13}
+                  center={[location.latitude, location.longitude]}
+                  zoom={15}
                   style={{ height: "400px", width: "100%", borderRadius: "12px" }}
                 >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Marker position={[beacon.latitude, beacon.longitude]}>
+                  <LayersControl position="topright">
+                    {/* Google Street */}
+                    <BaseLayer checked name="Google Street">
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                        url="http://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                      />
+                    </BaseLayer>
+
+                    {/* Google Satellite */}
+                    <BaseLayer name="Google Satellite">
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                        url="http://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                      />
+                    </BaseLayer>
+
+                    {/* Google Hybrid (satellite + labels) */}
+                    <BaseLayer name="Google Hybrid">
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                        url="http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                      />
+                    </BaseLayer>
+
+                    {/* Google Terrain (hills, mountains) */}
+                    <BaseLayer name="Google Terrain">
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                        url="http://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
+                      />
+                    </BaseLayer>
+                  </LayersControl>
+
+                  {/* 🔴 Gateway markers */}
+                  {Object.keys(gatewayCoords).map((gatewayId, index) => {
+                    const gateway = gatewayCoords[gatewayId];
+                    const label = String.fromCharCode(65 + index);
+
+                    const redIcon = L.divIcon({
+                      className: "custom-red-marker",
+                      html: `<div style="
+                        background-color: red;
+                        color: white;
+                        border-radius: 50%;
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 12px;
+                        font-weight: bold;
+                        border: 2px solid white;
+                      ">${label}</div>`,
+                      iconSize: [24, 24],
+                      iconAnchor: [12, 12],
+                    });
+
+                    return (
+                      <Marker
+                        key={gatewayId}
+                        position={[gateway.lat, gateway.lon]}
+                        icon={redIcon}
+                      >
+                        <Popup>{gatewayId}</Popup>
+                      </Marker>
+                    );
+                  })}
+
+                  {/* 🟦 Beacon marker */}
+                  <Marker position={[location.latitude, location.longitude]}>
                     <Popup>
                       Machine is here 🏗️ <br />
-                      {resolvedAddress || `${beacon.latitude}, ${beacon.longitude}`}
+                      {resolvedAddress ||
+                        `${location.latitude}, ${location.longitude}`}
                     </Popup>
                   </Marker>
                 </MapContainer>
@@ -359,7 +462,8 @@ function MachineDetails() {
           collapsed ? "footer-collapsed" : "footer-expanded"
         }`}
       >
-        © {new Date().getFullYear()} Designed and Developed by <strong>Milieu</strong>. All rights reserved.
+        © {new Date().getFullYear()} Designed and Developed by{" "}
+        <strong>Milieu</strong>. All rights reserved.
       </footer>
     </div>
   );

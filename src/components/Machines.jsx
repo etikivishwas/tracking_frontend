@@ -21,6 +21,7 @@ function Machines() {
     role: "",
     description: "",
     image: "",
+    deviceId: "", // Added deviceId field
   });
 
   // Theme state (persisted)
@@ -72,7 +73,7 @@ function Machines() {
       });
       if (res.ok) {
         alert("✅ Machine added successfully!");
-        setNewMachine({ name: "", role: "", description: "", image: "" });
+        setNewMachine({ name: "", role: "", description: "", image: "", deviceId: "" }); // Reset deviceId
         setShowForm(false);
         fetchMachines();
       } else {
@@ -249,6 +250,15 @@ function Machines() {
                 onChange={(e) =>
                   setNewMachine({ ...newMachine, image: e.target.value })
                 }
+              />
+              <input
+                type="text"
+                placeholder="Device ID" // Added input for deviceId
+                value={newMachine.deviceId}
+                onChange={(e) =>
+                  setNewMachine({ ...newMachine, deviceId: e.target.value })
+                }
+                required
               />
 
               <div className={styles.modalActions}>

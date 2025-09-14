@@ -23,6 +23,7 @@ function Trucks() {
     role: "",
     description: "",
     image: null,
+    deviceId: "", // Added deviceId field
   });
 
   // Theme (persisted)
@@ -85,7 +86,7 @@ function Trucks() {
       });
 
       setShowModal(false);
-      setFormData({ name: "", role: "", description: "", image: null });
+      setFormData({ name: "", role: "", description: "", image: null, deviceId: "" }); // Reset deviceId
 
       // Refresh trucks list
       const res = await axios.get(`${API_URL}/api/trucks`);
@@ -245,6 +246,14 @@ function Trucks() {
                 onChange={handleChange}
               ></textarea>
               <input type="file" name="image" onChange={handleChange} />
+              <input
+                type="text"
+                name="deviceId"
+                placeholder="Device ID" // Added input for deviceId
+                value={formData.deviceId}
+                onChange={handleChange}
+                required
+              />
 
               <div className={styles.modalActions}>
                 <button type="submit" className={styles.saveBtn}>
