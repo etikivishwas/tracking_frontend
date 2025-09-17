@@ -24,7 +24,13 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  LayersControl,
+} from "react-leaflet";
 import L from "leaflet";
 
 // Fix default Leaflet marker issue
@@ -36,8 +42,18 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
+const { BaseLayer } = LayersControl;
+
+// Predefined Gateway coordinates
+const gatewayCoords = {
+  "Gateway-A": { lat: 15.585108, lon: 79.825956 },
+  "Gateway-B": { lat: 15.585979, lon: 79.826868 },
+  "Gateway-C": { lat: 15.585958, lon: 79.825935 },
+  "Gateway-D": { lat: 15.586149, lon: 79.826879 },
+};
+
 const API_URL =
-  process.env.REACT_APP_API_URL || "https://trackingbackend-7fvy.onrender.com";
+  process.env.REACT_APP_API_URL || "https://trackingbackend-v23j.onrender.com";
 
 function WorkerDetails() {
   const { id } = useParams();
@@ -51,6 +67,7 @@ function WorkerDetails() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState(null);
+  const [activity, setActivity] = useState(null);
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -79,6 +96,7 @@ function WorkerDetails() {
         setWorker(res.data.worker);
         setLogs(res.data.logs || []);
         setLocation(res.data.location || null);
+        setActivity(res.data.latest_activity || null);
         setLoading(false);
 
         // Perform reverse geocoding for the location's latitude and longitude
@@ -116,7 +134,8 @@ function WorkerDetails() {
     fetchWorkerData(date);
   };
 
-  const todayHours = logs.length ? logs.reduce((a, b) => a + b.hours_worked, 0) : 0;
+  const total_hours = logs.hours_worked_today;
+  const total_workdays = logs.days_worked;
   const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
   const handleLogout = () => navigate("/");
 
@@ -230,7 +249,7 @@ function WorkerDetails() {
                     {openTile === "days" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
                   {openTile === "days" && (
-                    <div className={styles.tileContent}>28 Days</div>
+                    <div className={styles.tileContent}>{total_workdays} Days</div>
                   )}
                 </div>
 
@@ -241,12 +260,12 @@ function WorkerDetails() {
                   <div className={styles.tileHeader}>
                     <div className={styles.tileLeft}>
                       <IoPeopleOutline className={styles.tileIcon} />
-                      <span className={styles.tileTitle}>ATTENDANCE</span>
+                      <span className={styles.tileTitle}>ACTIVITY</span>
                     </div>
                     {openTile === "att" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
                   {openTile === "att" && (
-                    <div className={styles.tileContent}>{worker.attendance}%</div>
+                    <div className={styles.tileContent}>{activity.status}</div>
                   )}
                 </div>
               </div>
@@ -309,7 +328,7 @@ function WorkerDetails() {
               <div className={styles.chartCard}>
                 <h3>TODAY ACTIVES</h3>
                 <ResponsiveContainer width="100%" height={260}>
-                  <LineChart data={logs}>
+                  <LineChart data={[logs.days_worked, logs.hours_worked_today]}>
                     <XAxis dataKey="work_date" />
                     <YAxis domain={[0, 12]} />
                     <Tooltip />
@@ -332,7 +351,7 @@ function WorkerDetails() {
                   <div className={styles.ringC} />
                   <div className={styles.hoursCenter}>
                     <div className={styles.hoursNumber}>
-                      {String(todayHours).padStart(2, "0")}
+                      {total_hours}
                     </div>
                     <div className={styles.hoursLabel}>HOURS</div>
                   </div>
@@ -344,37 +363,89 @@ function WorkerDetails() {
             <section className="mb-3 p-4">
               <h3>Live Worker Location</h3>
               {location?.latitude && location?.longitude ? (
-                console.log("Rendering map with coordinates:", {
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                }),
                 <MapContainer
-                  center={[
-                    parseFloat(location.latitude),
-                    parseFloat(location.longitude),
-                  ]} // Ensure latitude and longitude are parsed as numbers
+                  center={[location.latitude, location.longitude]}
                   zoom={15}
                   style={{ height: "400px", width: "100%", borderRadius: "12px" }}
                 >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  <Marker
-                    position={[
-                      parseFloat(location.latitude),
-                      parseFloat(location.longitude),
-                    ]}
-                  >
+                  <LayersControl position="topright">
+                    {/* Google Street */}
+                    <BaseLayer checked name="Google Street">
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                        url="http://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                      />
+                    </BaseLayer>
+
+                    {/* Google Satellite */}
+                    <BaseLayer name="Google Satellite">
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                        url="http://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+                      />
+                    </BaseLayer>
+
+                    {/* Google Hybrid */}
+                    <BaseLayer name="Google Hybrid">
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                        url="http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                      />
+                    </BaseLayer>
+
+                    {/* Google Terrain */}
+                    <BaseLayer name="Google Terrain">
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                        url="http://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
+                      />
+                    </BaseLayer>
+                  </LayersControl>
+
+                  {/* Gateway markers */}
+                  {Object.keys(gatewayCoords).map((gatewayId, index) => {
+                    const gateway = gatewayCoords[gatewayId];
+                    const label = String.fromCharCode(65 + index);
+
+                    const redIcon = L.divIcon({
+                      className: "custom-red-marker",
+                      html: `<div style="
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            border: 2px solid white;
+          ">${label}</div>`,
+                      iconSize: [24, 24],
+                      iconAnchor: [12, 12],
+                    });
+
+                    return (
+                      <Marker
+                        key={gatewayId}
+                        position={[gateway.lat, gateway.lon]}
+                        icon={redIcon}
+                      >
+                        <Popup>{gatewayId}</Popup>
+                      </Marker>
+                    );
+                  })}
+
+                  {/* Worker marker */}
+                  <Marker position={[location.latitude, location.longitude]}>
                     <Popup>
-                      {worker.name} is here 👷 <br />
-                      {resolvedAddress ||
-                        `${location.latitude}, ${location.longitude}`}
+                      Worker is here 👷 <br />
+                      {resolvedAddress || `${location.latitude}, ${location.longitude}`}
                     </Popup>
                   </Marker>
                 </MapContainer>
               ) : (
-                console.log("No valid location data available:", worker),
                 <p>No location available</p>
               )}
             </section>

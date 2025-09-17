@@ -28,7 +28,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
 import L from "leaflet";
 
 const API_URL =
-  process.env.REACT_APP_API_URL || "https://trackingbackend-7fvy.onrender.com";
+  process.env.REACT_APP_API_URL || "https://trackingbackend-v23j.onrender.com";
 
 // Fix leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;

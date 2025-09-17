@@ -45,7 +45,7 @@ L.Icon.Default.mergeOptions({
 const { BaseLayer } = LayersControl;
 
 const API_URL =
-  process.env.REACT_APP_API_URL || "https://trackingbackend-7fvy.onrender.com";
+  process.env.REACT_APP_API_URL || "https://trackingbackend-v23j.onrender.com";
 
 // 📍 Predefined Gateway coordinates
 const gatewayCoords = {
@@ -68,6 +68,7 @@ function MachineDetails() {
   const [openTile, setOpenTile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState(null);
+  const [activity, setActivity] = useState(null);
 
   // Theme state (persisted)
   const [theme, setTheme] = useState(() => {
@@ -95,6 +96,7 @@ function MachineDetails() {
         setLogs(res.data.logs || []);
         setBeacon(res.data.beacon);
         setLocation(res.data.location || []);
+        setActivity(res.data.latest_activity || [])
         setTimeout(() => setLoading(false), 400);
       })
       .catch((err) => {
@@ -248,10 +250,10 @@ function MachineDetails() {
                       <span className={styles.tileTitle}>CONDITION</span>
                     </div>
                     {openTile === "cond" ? <IoChevronUp /> : <IoChevronDown />}
-                  </div>
+                  </div>  
                   {openTile === "cond" && (
                     <div className={styles.tileContent}>
-                      {latestLog ? latestLog.state : "N/A"}
+                      {activity ? activity.status : "N/A"}
                     </div>
                   )}
                 </div>

@@ -14,7 +14,7 @@ function Login({ setIsAuthenticated }) {
     e.preventDefault();
 
     try {
-      const res = await axios.post("https://trackingbackend-7fvy.onrender.com/api/auth/login", {
+      const res = await axios.post("https://trackingbackend-v23j.onrender.com/api/auth/login", {
         email,
         password,
         staySignedIn,

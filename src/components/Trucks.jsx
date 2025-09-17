@@ -8,7 +8,7 @@ import Image from "./passport.jpg";
 import "../App.css";
 import axios from "axios";
 
-const API_URL = "https://trackingbackend-7fvy.onrender.com";
+const API_URL = "https://trackingbackend-v23j.onrender.com";
 
 function Trucks() {
   const navigate = useNavigate();

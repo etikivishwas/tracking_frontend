@@ -7,7 +7,7 @@ import { FiSun, FiMoon } from "react-icons/fi";
 import Image from "./passport.jpg";
 import "../App.css";
 
-const API_URL = "https://trackingbackend-7fvy.onrender.com"; 
+const API_URL = "https://trackingbackend-v23j.onrender.com"; 
 
 function Machines() {   
   const navigate = useNavigate();
