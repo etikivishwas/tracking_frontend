@@ -15,6 +15,7 @@ import WorkerDetails from "./components/WorkerDetails.jsx";
 import TruckDetails from "./components/TruckDetails.jsx";
 import MachineDetails from "./components/MachineDetails.jsx";
 import Loader from "./components/Loader.jsx"; // ✅ fixed typo (Lodaer → Loader)
+import MqttAlert from "./components/MqttAlert";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -34,6 +35,7 @@ function App() {
     <Router>
       {/* ✅ Wrap routes in Suspense with Loader */}
       <Suspense fallback={<Loader />}>
+      <MqttAlert />
         <Routes>
           {/* Always go to login first */}
           <Route path="/" element={<Navigate to="/login" />} />
