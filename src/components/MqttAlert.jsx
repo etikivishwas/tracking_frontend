@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./MqttAlert.css"; // import CSS file
 
 function MqttAlert() {
   const [alert, setAlert] = useState(null);
-  const [show, setShow] = useState(false); // for animation
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -12,14 +10,12 @@ function MqttAlert() {
         .then(res => {
           if (!res.data.alive) {
             setAlert("🚨 No data received from MQTT broker!");
-            setShow(true);
           } else {
-            setShow(false);
-            setTimeout(() => setAlert(null), 500); // wait for slide-out
+            setAlert(null);
           }
         })
         .catch(err => console.error(err));
-    }, 30000);
+    }, 30000); // poll every 30s
 
     return () => clearInterval(interval);
   }, []);
@@ -27,7 +23,14 @@ function MqttAlert() {
   if (!alert) return null;
 
   return (
-    <div className={`alert ${show ? "slide-in" : "slide-out"}`}>
+    <div style={{
+      background: "red",
+      color: "white",
+      padding: "10px",
+      borderRadius: "5px",
+      textAlign: "center",
+      fontWeight: "bold"
+    }}>
       {alert}
     </div>
   );
