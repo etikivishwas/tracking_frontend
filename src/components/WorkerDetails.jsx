@@ -127,15 +127,15 @@ function WorkerDetails() {
 
   useEffect(() => {
     fetchWorkerData(selectedDate);
-  }, [id]);
+  }, [id, selectedDate]);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
     fetchWorkerData(date);
   };
 
-  const total_hours = logs.hours_worked_today;
-  const total_workdays = logs.days_worked;
+  const total_hours = logs?.hours_worked_for_date ?? 0;
+  const total_workdays = logs?.days_worked ?? 0;
   const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
   const handleLogout = () => navigate("/");
 

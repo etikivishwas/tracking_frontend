@@ -297,7 +297,15 @@ function TruckDetails() {
                     </div>
                     {openTile === "cond" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
-                  {openTile === "cond" && <div className={styles.tileContent}>{latestLog ? latestLog.state : "N/A"}</div>}
+                  {openTile === "cond" && (
+                    <div className={styles.tileContent}>
+                      {tracker?.event_type === "movement"
+                        ? "Working"
+                        : tracker?.event_type === "idle"
+                        ? "Idle"
+                        : "N/A"}
+                    </div>
+                  )}
                 </div>
               </div>
             </section>
@@ -403,7 +411,7 @@ function TruckDetails() {
             </section>
 
             {/* --- Fuel, Weight, Distance Chart --- */}
-            <div className={styles.container2}>
+            {/* <div className={styles.container2}>
               <div className={styles.fuel}>
                 <LuFuel className={styles.icon1} />
                 <p className={styles.para}>Fuel Consumption</p>
@@ -435,7 +443,7 @@ function TruckDetails() {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-            </div>
+            </div> */}
 
             {/* --- MAP --- */}
             <div className="p-3 mb-5">
