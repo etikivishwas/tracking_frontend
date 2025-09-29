@@ -57,7 +57,7 @@ const gatewayCoords = {
   "Gateway-A3": { lat: 15.5853583333, lon: 79.8240361111, label: "A3" },
 }
   const bounds = [
-    [15.586988, 79.821908],  // southwest
+    [15.5871234, 79.821908],  // southwest
     [15.583961, 79.831580]   // northeast
   ];
 
