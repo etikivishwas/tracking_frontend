@@ -30,6 +30,8 @@ import {
   Marker,
   Popup,
   LayersControl,
+  Polygon,
+  ImageOverlay
 } from "react-leaflet";
 import L from "leaflet";
 
@@ -46,11 +48,23 @@ const { BaseLayer } = LayersControl;
 
 // Predefined Gateway coordinates
 const gatewayCoords = {
-  "Gateway-A": { lat: 17.32054, lon: 78.56656 },
-  "Gateway-B": { lat: 17.32054, lon: 78.56646 },
-  "Gateway-C": { lat: 17.32040, lon: 78.56646 },
-  "Gateway-D": { lat: 17.32040, lon: 78.56655 },
-};
+  "Gateway-A1": { lat: 15.5869, lon: 79.8222694444, label: "A1" },
+  "Gateway-A2": { lat: 15.5863833333, lon: 79.825, label: "A2" },
+  'Gateway-A6': {lat: 15.5862416667, lon: 79.8273194444, label: "A6" },
+  'Gateway-A7': {lat: 15.5860916667, lon: 79.830075, label: "A7" },
+  'Gateway-A5': {lat: 15.5846722222, lon: 79.8278944444, label: "A5" },
+  "Gateway-A4": { lat: 15.5841944444, lon: 79.825075, label: "A4" },
+  "Gateway-A3": { lat: 15.5853583333, lon: 79.8240361111, label: "A3" },
+}
+  const bounds = [
+    [15.586988, 79.821908],  // southwest
+    [15.583961, 79.831580]   // northeast
+  ];
+
+const gatewayCoordsArray = Object.keys(gatewayCoords).map(key => {
+  const coord = gatewayCoords[key]
+  return [coord.lat, coord.lon]
+})
 
 const API_URL =
   process.env.REACT_APP_API_URL || "https://trackingbackend-v23j.onrender.com";
@@ -141,9 +155,8 @@ function WorkerDetails() {
 
   return (
     <div
-      className={`${styles.applayout} ${
-        theme === "light" ? styles.light : styles.dark
-      }`}
+      className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark
+        }`}
     >
       <Sidebar
         collapsed={collapsed}
@@ -153,9 +166,8 @@ function WorkerDetails() {
       />
 
       <main
-        className={`${styles.appcontent} ${
-          collapsed ? styles.contentcollapsed : styles.contentexpanded
-        }`}
+        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
+          }`}
       >
         {loading ? (
           <div className={styles.loading}>Loading worker details...</div>
@@ -364,10 +376,23 @@ function WorkerDetails() {
               <h3>Live Worker Location</h3>
               {location?.latitude && location?.longitude ? (
                 <MapContainer
-                  center={[location.latitude, location.longitude]}
+                  center={[15.5869, 79.8222694444]}
                   zoom={15}
+                  zoomSnap={0}
+                  zoomDelta={0.25}
                   style={{ height: "400px", width: "100%", borderRadius: "12px" }}
-                >
+                > 
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      maxZoom={22}
+                    />
+
+                    <Polygon
+                      positions={gatewayCoordsArray}
+
+                      pathOptions={{ color: "red", fillColor: "orange", fillOpacity: 0.05 }} />
+                    <ImageOverlay url={"/Sketch.png"} bounds={bounds} opacity={0.7} />
+
                   <LayersControl position="topright">
                     {/* Google Street */}
                     <BaseLayer checked name="Google Street">
@@ -405,7 +430,7 @@ function WorkerDetails() {
                   {/* Gateway markers */}
                   {Object.keys(gatewayCoords).map((gatewayId, index) => {
                     const gateway = gatewayCoords[gatewayId];
-                    const label = String.fromCharCode(65 + index);
+                    const label = gateway.label;
 
                     const redIcon = L.divIcon({
                       className: "custom-red-marker",
@@ -454,9 +479,8 @@ function WorkerDetails() {
       </main>
 
       <footer
-        className={`app-footer text-center ${
-          collapsed ? "footer-collapsed" : "footer-expanded"
-        }`}
+        className={`app-footer text-center ${collapsed ? "footer-collapsed" : "footer-expanded"
+          }`}
       >
         © {new Date().getFullYear()} Designed and Developed by <strong>Milieu</strong>. All rights reserved.
       </footer>
