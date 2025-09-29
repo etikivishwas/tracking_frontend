@@ -31,7 +31,8 @@ import {
   Popup,
   LayersControl,
   Polygon,
-  ImageOverlay
+  ImageOverlay,
+  Polyline
 } from "react-leaflet";
 import L from "leaflet";
 
@@ -48,18 +49,18 @@ const { BaseLayer } = LayersControl;
 
 // Predefined Gateway coordinates
 const gatewayCoords = {
-  "Gateway-A1": { lat: 15.5869, lon: 79.8222694444, label: "A1" },
-  "Gateway-A2": { lat: 15.5863833333, lon: 79.825, label: "A2" },
-  'Gateway-A6': {lat: 15.5862416667, lon: 79.8273194444, label: "A6" },
-  'Gateway-A7': {lat: 15.5860916667, lon: 79.830075, label: "A7" },
-  'Gateway-A5': {lat: 15.5846722222, lon: 79.8278944444, label: "A5" },
-  "Gateway-A4": { lat: 15.5841944444, lon: 79.825075, label: "A4" },
-  "Gateway-A3": { lat: 15.5853583333, lon: 79.8240361111, label: "A3" },
+  "Gateway-A": { lat: 15.5869, lon: 79.8222694444, label: "A" },
+  "Gateway-B": { lat: 15.5863833333, lon: 79.825, label: "B" },
+  'Gateway-F': { lat: 15.5862416667, lon: 79.8273194444, label: "F" },
+  'Gateway-G': { lat: 15.5860916667, lon: 79.830075, label: "G" },
+  'Gateway-E': { lat: 15.5846722222, lon: 79.8278944444, label: "E" },
+  "Gateway-D": { lat: 15.5841944444, lon: 79.825075, label: "D" },
+  "Gateway-C": { lat: 15.5853583333, lon: 79.8240361111, label: "C" },
 }
-  const bounds = [
-    [15.5871234, 79.821908],  // southwest
-    [15.583961, 79.831580]   // northeast
-  ];
+const bounds = [
+  [15.5871234, 79.821908],  // southwest
+  [15.583961, 79.831580]   // northeast
+];
 
 const gatewayCoordsArray = Object.keys(gatewayCoords).map(key => {
   const coord = gatewayCoords[key]
@@ -82,6 +83,8 @@ function WorkerDetails() {
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState(null);
   const [activity, setActivity] = useState(null);
+  const [gatewayDistances, setGatewayDistances] = useState([]);
+
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -93,7 +96,7 @@ function WorkerDetails() {
   useEffect(() => {
     try {
       localStorage.setItem("milieu-theme", theme);
-    } catch {}
+    } catch { }
   }, [theme]);
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -111,6 +114,14 @@ function WorkerDetails() {
         setLogs(res.data.logs || []);
         setLocation(res.data.location || null);
         setActivity(res.data.latest_activity || null);
+        axios
+          .get(`${API_URL}/api/workers/${id}/gateway-distances`)
+          .then((res) => {
+            console.log("Gateway distances fetched:", res.data); // <-- Add this line
+            setGatewayDistances(res.data);
+          })
+          .catch((err) => console.error("Error fetching gateway distances:", err));
+
         setLoading(false);
 
         // Perform reverse geocoding for the location's latitude and longitude
@@ -381,17 +392,17 @@ function WorkerDetails() {
                   zoomSnap={0}
                   zoomDelta={0.25}
                   style={{ height: "400px", width: "100%", borderRadius: "12px" }}
-                > 
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      maxZoom={22}
-                    />
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    maxZoom={22}
+                  />
 
-                    <Polygon
-                      positions={gatewayCoordsArray}
+                  <Polygon
+                    positions={gatewayCoordsArray}
 
-                      pathOptions={{ color: "red", fillColor: "orange", fillOpacity: 0.05 }} />
-                    <ImageOverlay url={"/Sketch.png"} bounds={bounds} opacity={0.7} />
+                    pathOptions={{ color: "red", fillColor: "orange", fillOpacity: 0.05 }} />
+                  <ImageOverlay url={"/Sketch.png"} bounds={bounds} opacity={0.7} />
 
                   <LayersControl position="topright">
                     {/* Google Street */}
@@ -469,7 +480,40 @@ function WorkerDetails() {
                       {resolvedAddress || `${location.latitude}, ${location.longitude}`}
                     </Popup>
                   </Marker>
+                  {/* Lines + labels for gateway distances */}
+                  {gatewayDistances.map((g, index) => {
+                    const gateway = gatewayCoords[g.gateway];
+                    if (!gateway) return null; // skip if not in predefined gateways
+
+                    return (
+                      <React.Fragment key={index}>
+                        {/* Line */}
+                        <Polyline
+                          positions={[
+                            [gateway.lat, gateway.lon],
+                            [location.latitude, location.longitude],
+                          ]}
+                          pathOptions={{ color: "black", weight: 1, dashArray: "4 8" }}
+                        />
+
+                        {/* Label at midpoint */}
+                        <Marker
+                          position={[
+                            (gateway.lat + location.latitude) / 2,
+                            (gateway.lon + location.longitude) / 2,
+                          ]}
+                          icon={L.divIcon({
+                            className: "distance-label",
+                            html: `<div style="padding:1px 4px; font-size:12px; color:black;">
+                   ${g.gateway}<br/>${g.distance} m
+                 </div>`,
+                          })}
+                        />
+                      </React.Fragment>
+                    );
+                  })}
                 </MapContainer>
+
               ) : (
                 <p>No location available</p>
               )}

@@ -30,6 +30,8 @@ import {
   Marker,
   Popup,
   LayersControl,
+  Polygon,
+  ImageOverlay
 } from "react-leaflet";
 import L from "leaflet";
 
@@ -49,11 +51,24 @@ const API_URL =
 
 // 📍 Predefined Gateway coordinates
 const gatewayCoords = {
-  "Gateway-A": { lat: 15.585108, lon: 79.825956 },
-  "Gateway-B": { lat: 15.585979, lon: 79.826868 },
-  "Gateway-C": { lat: 15.585958, lon: 79.825935 },
-  "Gateway-D": { lat: 15.586149, lon: 79.826879 },
-};
+  "Gateway-A": { lat: 15.5869, lon: 79.8222694444, label: "A" },
+  "Gateway-B": { lat: 15.5863833333, lon: 79.825, label: "B" },
+  'Gateway-F': {lat: 15.5862416667, lon: 79.8273194444, label: "F" },
+  'Gateway-G': {lat: 15.5860916667, lon: 79.830075, label: "G" },
+  'Gateway-E': {lat: 15.5846722222, lon: 79.8278944444, label: "E" },
+  "Gateway-D": { lat: 15.5841944444, lon: 79.825075, label: "D" },
+  "Gateway-C": { lat: 15.5853583333, lon: 79.8240361111, label: "C" },
+}
+
+const bounds = [
+    [15.5871234, 79.821908],  // southwest
+    [15.583961, 79.831580]   // northeast
+  ];
+
+  const gatewayCoordsArray = Object.keys(gatewayCoords).map(key => {
+  const coord = gatewayCoords[key]
+  return [coord.lat, coord.lon]
+})
 
 function MachineDetails() {
   const { id } = useParams();
@@ -81,7 +96,7 @@ function MachineDetails() {
   useEffect(() => {
     try {
       localStorage.setItem("milieu-theme", theme);
-    } catch {}
+    } catch { }
   }, [theme]);
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
@@ -142,9 +157,8 @@ function MachineDetails() {
 
   return (
     <div
-      className={`${styles.applayout} ${
-        theme === "light" ? styles.light : styles.dark
-      }`}
+      className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark
+        }`}
     >
       <Sidebar
         collapsed={collapsed}
@@ -154,9 +168,8 @@ function MachineDetails() {
       />
 
       <main
-        className={`${styles.appcontent} ${
-          collapsed ? styles.contentcollapsed : styles.contentexpanded
-        }`}
+        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
+          }`}
       >
         {loading ? (
           <div className={styles.loading}>Loading machine details...</div>
@@ -181,9 +194,8 @@ function MachineDetails() {
                 <button
                   onClick={toggleTheme}
                   className={styles.themeToggle}
-                  aria-label={`Switch to ${
-                    theme === "dark" ? "light" : "dark"
-                  } mode`}
+                  aria-label={`Switch to ${theme === "dark" ? "light" : "dark"
+                    } mode`}
                   title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
                 >
                   {theme === "dark" ? <FiSun /> : <FiMoon />}
@@ -220,9 +232,8 @@ function MachineDetails() {
               <div className={styles.statStack}>
                 {/* Location */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "loc" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""
+                    }`}
                   onClick={() => toggleTile("loc")}
                 >
                   <div className={styles.tileHeader}>
@@ -239,9 +250,8 @@ function MachineDetails() {
 
                 {/* Condition */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "cond" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "cond" ? styles.open : ""
+                    }`}
                   onClick={() => toggleTile("cond")}
                 >
                   <div className={styles.tileHeader}>
@@ -250,7 +260,7 @@ function MachineDetails() {
                       <span className={styles.tileTitle}>CONDITION</span>
                     </div>
                     {openTile === "cond" ? <IoChevronUp /> : <IoChevronDown />}
-                  </div>  
+                  </div>
                   {openTile === "cond" && (
                     <div className={styles.tileContent}>
                       {activity ? activity.status : "N/A"}
@@ -260,9 +270,8 @@ function MachineDetails() {
 
                 {/* Coordinates */}
                 <div
-                  className={`${styles.statTile} ${
-                    openTile === "coords" ? styles.open : ""
-                  }`}
+                  className={`${styles.statTile} ${openTile === "coords" ? styles.open : ""
+                    }`}
                   onClick={() => toggleTile("coords")}
                 >
                   <div className={styles.tileHeader}>
@@ -369,10 +378,23 @@ function MachineDetails() {
               <h3>Live Machine Location</h3>
               {location?.latitude && location?.longitude ? (
                 <MapContainer
-                  center={[location.latitude, location.longitude]}
+                  center={[15.5869, 79.8222694444]}
                   zoom={15}
+                  zoomSnap={0}
+                  zoomDelta={0.25}
                   style={{ height: "400px", width: "100%", borderRadius: "12px" }}
                 >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    maxZoom={22}
+                  />
+
+                  <Polygon
+                    positions={gatewayCoordsArray}
+
+                    pathOptions={{ color: "red", fillColor: "orange", fillOpacity: 0.05 }} />
+                  <ImageOverlay url={"/Sketch.png"} bounds={bounds} opacity={0.7} />
+
                   <LayersControl position="topright">
                     {/* Google Street */}
                     <BaseLayer checked name="Google Street">
@@ -390,7 +412,7 @@ function MachineDetails() {
                       />
                     </BaseLayer>
 
-                    {/* Google Hybrid (satellite + labels) */}
+                    {/* Google Hybrid */}
                     <BaseLayer name="Google Hybrid">
                       <TileLayer
                         attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
@@ -398,7 +420,7 @@ function MachineDetails() {
                       />
                     </BaseLayer>
 
-                    {/* Google Terrain (hills, mountains) */}
+                    {/* Google Terrain */}
                     <BaseLayer name="Google Terrain">
                       <TileLayer
                         attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
@@ -407,26 +429,26 @@ function MachineDetails() {
                     </BaseLayer>
                   </LayersControl>
 
-                  {/* 🔴 Gateway markers */}
+                  {/* Gateway markers */}
                   {Object.keys(gatewayCoords).map((gatewayId, index) => {
                     const gateway = gatewayCoords[gatewayId];
-                    const label = String.fromCharCode(65 + index);
+                    const label = gateway.label;
 
                     const redIcon = L.divIcon({
                       className: "custom-red-marker",
                       html: `<div style="
-                        background-color: red;
-                        color: white;
-                        border-radius: 50%;
-                        width: 24px;
-                        height: 24px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 12px;
-                        font-weight: bold;
-                        border: 2px solid white;
-                      ">${label}</div>`,
+                            background-color: red;
+                            color: white;
+                            border-radius: 50%;
+                            width: 24px;
+                            height: 24px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 12px;
+                            font-weight: bold;
+                            border: 2px solid white;
+                          ">${label}</div>`,
                       iconSize: [24, 24],
                       iconAnchor: [12, 12],
                     });
@@ -442,12 +464,11 @@ function MachineDetails() {
                     );
                   })}
 
-                  {/* 🟦 Beacon marker */}
+                  {/* Machine marker */}
                   <Marker position={[location.latitude, location.longitude]}>
                     <Popup>
                       Machine is here 🏗️ <br />
-                      {resolvedAddress ||
-                        `${location.latitude}, ${location.longitude}`}
+                      {resolvedAddress || `${location.latitude}, ${location.longitude}`}
                     </Popup>
                   </Marker>
                 </MapContainer>
@@ -460,9 +481,8 @@ function MachineDetails() {
       </main>
 
       <footer
-        className={`app-footer text-center ${
-          collapsed ? "footer-collapsed" : "footer-expanded"
-        }`}
+        className={`app-footer text-center ${collapsed ? "footer-collapsed" : "footer-expanded"
+          }`}
       >
         © {new Date().getFullYear()} Designed and Developed by{" "}
         <strong>Milieu</strong>. All rights reserved.
