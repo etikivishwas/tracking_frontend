@@ -49,13 +49,13 @@ const { BaseLayer } = LayersControl;
 
 // Predefined Gateway coordinates
 const gatewayCoords = {
-  "Gateway-A": { lat: 15.5869, lon: 79.8222694444, label: "A" },
-  "Gateway-B": { lat: 15.5863833333, lon: 79.825, label: "B" },
-  'Gateway-F': { lat: 15.5862416667, lon: 79.8273194444, label: "F" },
-  'Gateway-G': { lat: 15.5860916667, lon: 79.830075, label: "G" },
-  'Gateway-E': { lat: 15.5846722222, lon: 79.8278944444, label: "E" },
-  "Gateway-D": { lat: 15.5841944444, lon: 79.825075, label: "D" },
-  "Gateway-C": { lat: 15.5853583333, lon: 79.8240361111, label: "C" },
+  "Gateway-A1": { lat: 15.5869, lon: 79.8222694444, label: "A1" },
+  "Gateway-A2": { lat: 15.5863833333, lon: 79.825, label: "A2" },
+  'Gateway-A6': { lat: 15.5862416667, lon: 79.8273194444, label: "A6" },
+  'Gateway-A7': { lat: 15.5860916667, lon: 79.830075, label: "A7" },
+  'Gateway-A5': { lat: 15.5846722222, lon: 79.8278944444, label: "A5" },
+  "Gateway-A4": { lat: 15.5841944444, lon: 79.825075, label: "A4" },
+  "Gateway-A3": { lat: 15.5853583333, lon: 79.8240361111, label: "A3" },
 }
 const bounds = [
   [15.5871234, 79.821908],  // southwest
