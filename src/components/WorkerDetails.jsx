@@ -150,8 +150,26 @@ function WorkerDetails() {
       });
   };
 
+  // useEffect(() => {
+  //   // Fetch immediately when component mounts or when id/date changes
+  //   fetchWorkerData(selectedDate);
+
+  //   // Set up auto refresh every 30 seconds
+  //   const interval = setInterval(() => {
+  //     fetchWorkerData(selectedDate);
+  //   }, 30000);
+
+  //   // Cleanup when component unmounts or id/date changes
+  //   return () => clearInterval(interval);
+  // }, [id, selectedDate]);
+
+  // const handleDateChange = (date) => {
+  //   setSelectedDate(date);
+  //   fetchWorkerData(date);
+  // };
   useEffect(() => {
-    fetchWorkerData(selectedDate);
+  // Fetch immediately when component mounts or when id/date changes
+  fetchWorkerData(selectedDate);
   }, [id, selectedDate]);
 
   const handleDateChange = (date) => {
@@ -383,29 +401,36 @@ function WorkerDetails() {
             </section>
 
             {/* ROW 3 */}
+            {/* ROW 3 */}
             <section className="mb-3 p-4">
               <h3>Live Worker Location</h3>
+
               {location?.latitude && location?.longitude ? (
                 <MapContainer
-                  center={[15.5869, 79.8222694444]}
-                  zoom={15}
+                  key={id}  // ✅ ensures fresh map per worker
+                  center={[location.latitude, location.longitude]} // ✅ center on worker
+                  zoom={18}
                   zoomSnap={0}
                   zoomDelta={0.25}
                   style={{ height: "400px", width: "100%", borderRadius: "12px" }}
                 >
+                  {/* Base OSM */}
                   <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     maxZoom={22}
                   />
 
-                  <Polygon
-                    positions={gatewayCoordsArray}
-
-                    pathOptions={{ color: "red", fillColor: "orange", fillOpacity: 0.05 }} />
+                  {/* Overlay sketch image (below markers/lines) */}
                   <ImageOverlay url={"/Sketch.png"} bounds={bounds} opacity={0.7} />
 
+                  {/* Gateway polygon */}
+                  <Polygon
+                    positions={gatewayCoordsArray}
+                    pathOptions={{ color: "red", fillColor: "orange", fillOpacity: 0.05 }}
+                  />
+
+                  {/* LayersControl for Google maps */}
                   <LayersControl position="topright">
-                    {/* Google Street */}
                     <BaseLayer checked name="Google Street">
                       <TileLayer
                         attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
@@ -413,7 +438,6 @@ function WorkerDetails() {
                       />
                     </BaseLayer>
 
-                    {/* Google Satellite */}
                     <BaseLayer name="Google Satellite">
                       <TileLayer
                         attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
@@ -421,7 +445,6 @@ function WorkerDetails() {
                       />
                     </BaseLayer>
 
-                    {/* Google Hybrid */}
                     <BaseLayer name="Google Hybrid">
                       <TileLayer
                         attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
@@ -429,7 +452,6 @@ function WorkerDetails() {
                       />
                     </BaseLayer>
 
-                    {/* Google Terrain */}
                     <BaseLayer name="Google Terrain">
                       <TileLayer
                         attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
@@ -439,9 +461,9 @@ function WorkerDetails() {
                   </LayersControl>
 
                   {/* Gateway markers */}
-                  {Object.keys(gatewayCoords).map((gatewayId, index) => {
+                  {Object.keys(gatewayCoords).map((gatewayId) => {
                     const gateway = gatewayCoords[gatewayId];
-                    const label = gateway.label;
+                    if (!gateway) return null;
 
                     const redIcon = L.divIcon({
                       className: "custom-red-marker",
@@ -457,7 +479,7 @@ function WorkerDetails() {
             font-size: 12px;
             font-weight: bold;
             border: 2px solid white;
-          ">${label}</div>`,
+          ">${gateway.label}</div>`,
                       iconSize: [24, 24],
                       iconAnchor: [12, 12],
                     });
@@ -480,10 +502,11 @@ function WorkerDetails() {
                       {resolvedAddress || `${location.latitude}, ${location.longitude}`}
                     </Popup>
                   </Marker>
-                  {/* Lines + labels for gateway distances */}
+
+                  {/* Gateway distances (lines + labels) */}
                   {gatewayDistances.map((g, index) => {
                     const gateway = gatewayCoords[g.gateway];
-                    if (!gateway) return null; // skip if not in predefined gateways
+                    if (!gateway) return null;
 
                     return (
                       <React.Fragment key={index}>
@@ -505,19 +528,19 @@ function WorkerDetails() {
                           icon={L.divIcon({
                             className: "distance-label",
                             html: `<div style="padding:1px 4px; font-size:12px; color:black;">
-                   ${g.gateway}<br/>${g.distance} m
-                 </div>`,
+                  ${g.gateway}<br/>${g.distance} m
+                </div>`,
                           })}
                         />
                       </React.Fragment>
                     );
                   })}
                 </MapContainer>
-
               ) : (
                 <p>No location available</p>
               )}
             </section>
+
           </>
         )}
       </main>
