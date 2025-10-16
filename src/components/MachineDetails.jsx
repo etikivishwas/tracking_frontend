@@ -31,7 +31,8 @@ import {
   Popup,
   LayersControl,
   Polygon,
-  ImageOverlay
+  ImageOverlay,
+  Polyline
 } from "react-leaflet";
 import L from "leaflet";
 
@@ -49,7 +50,7 @@ const { BaseLayer } = LayersControl;
 const API_URL =
   process.env.REACT_APP_API_URL || "https://trackingbackend-v23j.onrender.com";
 
-// 📍 Predefined Gateway coordinates
+// Predefined Gateway coordinates
 const gatewayCoords = {
   "Gateway-A1": { lat: 15.5869, lon: 79.8222694444, label: "A1" },
   "Gateway-A2": { lat: 15.5863833333, lon: 79.825, label: "A2" },
@@ -66,9 +67,9 @@ const bounds = [
 ];
 
 const gatewayCoordsArray = Object.keys(gatewayCoords).map(key => {
-  const coord = gatewayCoords[key]
-  return [coord.lat, coord.lon]
-})
+  const coord = gatewayCoords[key];
+  return [coord.lat, coord.lon];
+});
 
 function MachineDetails() {
   const { id } = useParams();
@@ -84,8 +85,9 @@ function MachineDetails() {
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState(null);
   const [activity, setActivity] = useState(null);
+  const [gatewayDistances, setGatewayDistances] = useState([]);
 
-  // Theme state (persisted)
+  // Theme
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem("milieu-theme") || "dark";
@@ -100,94 +102,82 @@ function MachineDetails() {
   }, [theme]);
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  // Fetch machine details
-  const fetchMachineData = (date) => {
-    setLoading(true);
+  // Fetch machine data
+  const fetchMachineData = (date, showLoading = false) => {
+    if (showLoading) setLoading(true);
+
     const dateQuery = date ? `?date=${date.toISOString().split("T")[0]}` : "";
+
     axios
       .get(`${API_URL}/machines/${id}${dateQuery}`)
       .then((res) => {
         setMachine(res.data.machine);
         setLogs(res.data.logs || []);
         setBeacon(res.data.last_record || null);
-        setLocation(res.data.location || []);
-        setActivity(res.data.latest_activity || []);
-        setTimeout(() => setLoading(false), 400);
+        setLocation(res.data.location || null);
+        setActivity(res.data.latest_activity || null);
+
+        // Fetch gateway distances
+        axios
+          .get(`${API_URL}/machines/${id}/gateway-distances`)
+          .then((res) => {
+            setGatewayDistances(res.data);
+          })
+          .catch((err) => console.error("Error fetching gateway distances:", err));
+
+        if (showLoading) setLoading(false);
+
+        // Reverse geocoding
+        if (res.data.location?.latitude && res.data.location?.longitude) {
+          axios
+            .get(
+              `https://nominatim.openstreetmap.org/reverse?lat=${res.data.location.latitude}&lon=${res.data.location.longitude}&format=json`,
+              { headers: { "User-Agent": "MachineApp/1.0" } }
+            )
+            .then((geoRes) => {
+              if (geoRes.data?.display_name) setResolvedAddress(geoRes.data.display_name);
+            })
+            .catch((err) => console.error("Reverse geocoding failed:", err));
+        }
       })
       .catch((err) => {
-        console.error("Error fetching machine:", err);
-        setLoading(false);
+        console.error("Error fetching machine data:", err);
+        if (showLoading) setLoading(false);
       });
   };
 
-  // useEffect(() => {
-  //   // Fetch immediately on mount or when id/date changes
-  //   fetchMachineData(selectedDate);
-
-  //   const interval = setInterval(() => {
-  //     fetchMachineData(selectedDate);
-  //   }, 30000); // 30 seconds
-
-  //   return () => clearInterval(interval);
-  // }, [id, selectedDate]);
-
-  // // Handle date change
-  // const handleDateChange = (date) => {
-  //   setSelectedDate(date);
-  //   fetchMachineData(date); // immediate fetch
-  // };
   useEffect(() => {
-    // Fetch immediately on mount or when id/date changes
-    fetchMachineData(selectedDate);
+    const fetchWithScrollPreserved = async (showLoading = false) => {
+      const scrollY = window.scrollY;
+      await fetchMachineData(selectedDate, showLoading);
+      window.scrollTo(0, scrollY);
+    };
+
+    fetchWithScrollPreserved(true);
+
+    const interval = setInterval(() => {
+      fetchWithScrollPreserved(false);
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [id, selectedDate]);
 
-  // Handle date change
   const handleDateChange = (date) => {
     setSelectedDate(date);
-    fetchMachineData(date); // immediate fetch
+    fetchMachineData(date);
   };
 
-  // Reverse geocoding for location
-  useEffect(() => {
-    if (location?.latitude && location?.longitude) {
-      axios
-        .get(
-          `https://nominatim.openstreetmap.org/reverse?lat=${location.latitude}&lon=${location.longitude}&format=json`,
-          { headers: { "User-Agent": "MachineApp/1.0 (contact@example.com)" } }
-        )
-        .then((res) => {
-          if (res.data?.display_name) setResolvedAddress(res.data.display_name);
-        })
-        .catch((err) => console.error("Reverse geocoding failed:", err));
-    }
-  }, [location]);
-
-  const latestLog = logs.length ? logs[logs.length - 1] : null;
-  const todayHours = latestLog ? latestLog.hours_worked : 0;
-  const currentLocation =
-    resolvedAddress ||
-    location?.name ||
-    (latestLog ? latestLog.current_location : "N/A");
+  const todayHours = logs.length ? logs[logs.length - 1].hours_worked : 0;
+  const currentLocation = resolvedAddress || location?.name || "N/A";
 
   const toggleTile = (key) => setOpenTile((p) => (p === key ? null : key));
   const handleLogout = () => navigate("/");
 
   return (
-    <div
-      className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark
-        }`}
-    >
-      <Sidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed(!collapsed)}
-        onLogout={handleLogout}
-        theme={theme}
-      />
+    <div className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark}`}>
+      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} onLogout={handleLogout} theme={theme} />
 
-      <main
-        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
-          }`}
-      >
+      <main className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded}`}>
         {loading ? (
           <div className={styles.loading}>Loading machine details...</div>
         ) : (
@@ -207,22 +197,10 @@ function MachineDetails() {
                   <span className={styles.badge}>5</span>
                   <FaBell />
                 </div>
-
-                <button
-                  onClick={toggleTheme}
-                  className={styles.themeToggle}
-                  aria-label={`Switch to ${theme === "dark" ? "light" : "dark"
-                    } mode`}
-                  title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-                >
+                <button onClick={toggleTheme} className={styles.themeToggle}>
                   {theme === "dark" ? <FiSun /> : <FiMoon />}
                 </button>
-
-                <img
-                  src={`${API_URL}/uploads/1.jpg`}
-                  alt="User"
-                  className={styles.topAvatar}
-                />
+                <img src={`${API_URL}/uploads/1.jpg`} alt="User" className={styles.topAvatar} />
                 <span className={styles.username}>Alex Kumar</span>
               </div>
             </header>
@@ -239,20 +217,13 @@ function MachineDetails() {
                   src={`${API_URL}${machine.image}`}
                   alt={machine.name}
                   className={styles.heroImg}
-                  onError={(e) =>
-                    (e.currentTarget.src = `${API_URL}/uploads/placeholder.jpg`)
-                  }
+                  onError={(e) => (e.currentTarget.src = `${API_URL}/uploads/placeholder.jpg`)}
                 />
                 <div className={styles.heroGlow} />
               </div>
 
               <div className={styles.statStack}>
-                {/* Location */}
-                <div
-                  className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""
-                    }`}
-                  onClick={() => toggleTile("loc")}
-                >
+                <div className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""}`} onClick={() => toggleTile("loc")}>
                   <div className={styles.tileHeader}>
                     <div className={styles.tileLeft}>
                       <IoLocationOutline className={styles.tileIcon} />
@@ -260,17 +231,10 @@ function MachineDetails() {
                     </div>
                     {openTile === "loc" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
-                  {openTile === "loc" && (
-                    <div className={styles.tileContent}>{currentLocation}</div>
-                  )}
+                  {openTile === "loc" && <div className={styles.tileContent}>{currentLocation}</div>}
                 </div>
 
-                {/* Condition */}
-                <div
-                  className={`${styles.statTile} ${openTile === "cond" ? styles.open : ""
-                    }`}
-                  onClick={() => toggleTile("cond")}
-                >
+                <div className={`${styles.statTile} ${openTile === "cond" ? styles.open : ""}`} onClick={() => toggleTile("cond")}>
                   <div className={styles.tileHeader}>
                     <div className={styles.tileLeft}>
                       <IoCalendarOutline className={styles.tileIcon} />
@@ -278,37 +242,18 @@ function MachineDetails() {
                     </div>
                     {openTile === "cond" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
-                  {openTile === "cond" && (
-                    <div className={styles.tileContent}>
-                      {activity ? activity.status : "N/A"}
-                    </div>
-                  )}
+                  {openTile === "cond" && <div className={styles.tileContent}>{activity ? activity.status : "N/A"}</div>}
                 </div>
 
-                {/* Coordinates */}
-                <div
-                  className={`${styles.statTile} ${openTile === "coords" ? styles.open : ""
-                    }`}
-                  onClick={() => toggleTile("coords")}
-                >
+                <div className={`${styles.statTile} ${openTile === "coords" ? styles.open : ""}`} onClick={() => toggleTile("coords")}>
                   <div className={styles.tileHeader}>
                     <div className={styles.tileLeft}>
                       <IoCalendarOutline className={styles.tileIcon} />
                       <span className={styles.tileTitle}>LAT, LONG</span>
                     </div>
-                    {openTile === "coords" ? (
-                      <IoChevronUp />
-                    ) : (
-                      <IoChevronDown />
-                    )}
+                    {openTile === "coords" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
-                  {openTile === "coords" && (
-                    <div className={styles.tileContent}>
-                      {location?.latitude && location?.longitude
-                        ? `${location.latitude}, ${location.longitude}`
-                        : "N/A"}
-                    </div>
-                  )}
+                  {openTile === "coords" && <div className={styles.tileContent}>{location?.latitude && location?.longitude ? `${location.latitude}, ${location.longitude}` : "N/A"}</div>}
                 </div>
               </div>
             </section>
@@ -317,44 +262,32 @@ function MachineDetails() {
             <section className={styles.rowTwo}>
               <div className={styles.infoCard}>
                 <h3>Device Information</h3>
-                {beacon ? (
-                  <div className={styles.infoGrid}>
-                    <div>
-                      <span>Device ID :</span>
-                      <span>{beacon.deviceId}</span>
-                    </div>
-                    <div>
-                      <span>Timestamp :</span>
-                      <span>{new Date(beacon.timestamp).toLocaleString()}</span>
-                    </div>
-                    <div>
-                      <span>Accelerometer :</span>
-                      <span>{`${beacon.accel_x}, ${beacon.accel_y}, ${beacon.accel_z}`}</span>
-                    </div>
-                    <div>
-                      <span>Signal / Battery :</span>
-                      <span>
-                        RSSI {beacon.rssi} | Tx {beacon.txPower} | Battery{" "}
-                        {beacon.batteryLevel}%
-                      </span>
-                    </div>
-                    <div>
-                      <span>Status :</span>
-                      <span>{beacon.status}</span>
-                    </div>
-                    <div>
-                      <span>Select Date :</span>
-                      <DatePicker
-                        selected={selectedDate}
-                        onChange={handleDateChange}
-                        dateFormat="yyyy-MM-dd"
-                        className={styles.datePicker}
-                      />
-                    </div>
+                <div className={styles.infoGrid}>
+                  <div>
+                    <span>Device ID :</span>
+                    <span>{beacon?.deviceId || "N/A"}</span>
                   </div>
-                ) : (
-                  <p>No device info available</p>
-                )}
+                  <div>
+                    <span>Timestamp :</span>
+                    <span>{beacon?.timestamp ? new Date(beacon.timestamp).toLocaleString() : "N/A"}</span>
+                  </div>
+                  <div>
+                    <span>Accelerometer :</span>
+                    <span>{beacon?.accel_x !== undefined ? `${beacon.accel_x}, ${beacon.accel_y}, ${beacon.accel_z}` : "N/A"}</span>
+                  </div>
+                  <div>
+                    <span>Signal / Battery :</span>
+                    <span>RSSI {beacon?.rssi ?? "N/A"} | Tx {beacon?.txPower ?? "N/A"} | Battery {beacon?.batteryLevel ?? "N/A"}%</span>
+                  </div>
+                  <div>
+                    <span>Status :</span>
+                    <span>{beacon?.status || "N/A"}</span>
+                  </div>
+                  <div>
+                    <span>Select Date :</span>
+                    <DatePicker selected={selectedDate} onChange={handleDateChange} dateFormat="yyyy-MM-dd" className={styles.datePicker} />
+                  </div>
+                </div>
               </div>
 
               <div className={styles.chartCard}>
@@ -364,12 +297,7 @@ function MachineDetails() {
                     <XAxis dataKey="log_date" />
                     <YAxis />
                     <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="hours_worked"
-                      stroke="#21e065"
-                      fill="rgba(21, 232, 32, 0.3)"
-                    />
+                    <Area type="monotone" dataKey="hours_worked" stroke="#21e065" fill="rgba(21, 232, 32, 0.3)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -381,9 +309,7 @@ function MachineDetails() {
                   <div className={styles.ringB} />
                   <div className={styles.ringC} />
                   <div className={styles.hoursCenter}>
-                    <div className={styles.hoursNumber}>
-                      {String(todayHours).padStart(2, "0")}
-                    </div>
+                    <div className={styles.hoursNumber}>{String(todayHours).padStart(2, "0")}</div>
                     <div className={styles.hoursLabel}>HOURS</div>
                   </div>
                 </div>
@@ -391,61 +317,33 @@ function MachineDetails() {
             </section>
 
             {/* ROW 3: Map */}
-            {/* ROW 3: Map */}
             <section className="mb-3 p-4">
               <h3>Live Machine Location</h3>
               {location?.latitude && location?.longitude ? (
                 <MapContainer
-                  key={id} // ✅ ensures Leaflet fully remounts when machine changes
-                  center={[location.latitude, location.longitude]} // ✅ dynamic center
+                  key={id}
+                  center={[location.latitude, location.longitude]}
                   zoom={18}
                   zoomSnap={0}
                   zoomDelta={0.25}
                   style={{ height: "400px", width: "100%", borderRadius: "12px" }}
                 >
-                  {/* Base OSM */}
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    maxZoom={22}
-                  />
-
-                  {/* Overlay sketch image (background) */}
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={22} />
                   <ImageOverlay url={"/Sketch.png"} bounds={bounds} opacity={0.7} />
+                  <Polygon positions={gatewayCoordsArray} pathOptions={{ color: "red", fillColor: "orange", fillOpacity: 0.05 }} />
 
-                  {/* Gateway polygon */}
-                  <Polygon
-                    positions={gatewayCoordsArray}
-                    pathOptions={{ color: "red", fillColor: "orange", fillOpacity: 0.05 }}
-                  />
-
-                  {/* Google map layers */}
                   <LayersControl position="topright">
                     <BaseLayer checked name="Google Street">
-                      <TileLayer
-                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                        url="http://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
-                      />
+                      <TileLayer attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>' url="http://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}" />
                     </BaseLayer>
-
                     <BaseLayer name="Google Satellite">
-                      <TileLayer
-                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                        url="http://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
-                      />
+                      <TileLayer attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>' url="http://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}" />
                     </BaseLayer>
-
                     <BaseLayer name="Google Hybrid">
-                      <TileLayer
-                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                        url="http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
-                      />
+                      <TileLayer attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>' url="http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" />
                     </BaseLayer>
-
                     <BaseLayer name="Google Terrain">
-                      <TileLayer
-                        attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                        url="http://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
-                      />
+                      <TileLayer attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>' url="http://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}" />
                     </BaseLayer>
                   </LayersControl>
 
@@ -457,31 +355,23 @@ function MachineDetails() {
                     const redIcon = L.divIcon({
                       className: "custom-red-marker",
                       html: `<div style="
-            background-color: red;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            border: 2px solid white;
-          ">${gateway.label}</div>`,
+                        background-color: red;
+                        color: white;
+                        border-radius: 50%;
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 12px;
+                        font-weight: bold;
+                        border: 2px solid white;
+                      ">${gateway.label}</div>`,
                       iconSize: [24, 24],
                       iconAnchor: [12, 12],
                     });
 
-                    return (
-                      <Marker
-                        key={gatewayId}
-                        position={[gateway.lat, gateway.lon]}
-                        icon={redIcon}
-                      >
-                        <Popup>{gatewayId}</Popup>
-                      </Marker>
-                    );
+                    return <Marker key={gatewayId} position={[gateway.lat, gateway.lon]} icon={redIcon}><Popup>{gatewayId}</Popup></Marker>;
                   })}
 
                   {/* Machine marker */}
@@ -491,22 +381,47 @@ function MachineDetails() {
                       {resolvedAddress || `${location.latitude}, ${location.longitude}`}
                     </Popup>
                   </Marker>
+
+                  {/* Gateway distances */}
+                  {gatewayDistances.map((g, index) => {
+                    const gateway = gatewayCoords[g.gateway];
+                    if (!gateway) return null;
+
+                    return (
+                      <React.Fragment key={index}>
+                        <Polyline
+                          positions={[
+                            [gateway.lat, gateway.lon],
+                            [location.latitude, location.longitude],
+                          ]}
+                          pathOptions={{ color: "black", weight: 1, dashArray: "4 8" }}
+                        />
+                        <Marker
+                          position={[
+                            (gateway.lat + location.latitude) / 2,
+                            (gateway.lon + location.longitude) / 2,
+                          ]}
+                          icon={L.divIcon({
+                            className: "distance-label",
+                            html: `<div style="padding:1px 4px; font-size:12px; color:black;">
+                              ${g.gateway}<br/>${g.distance} m
+                            </div>`,
+                          })}
+                        />
+                      </React.Fragment>
+                    );
+                  })}
                 </MapContainer>
               ) : (
                 <p>No location available</p>
               )}
             </section>
-
           </>
         )}
       </main>
 
-      <footer
-        className={`app-footer text-center ${collapsed ? "footer-collapsed" : "footer-expanded"
-          }`}
-      >
-        © {new Date().getFullYear()} Designed and Developed by{" "}
-        <strong>Milieu</strong>. All rights reserved.
+      <footer className={`app-footer text-center ${collapsed ? "footer-collapsed" : "footer-expanded"}`}>
+        © {new Date().getFullYear()} Designed and Developed by <strong>Milieu</strong>. All rights reserved.
       </footer>
     </div>
   );

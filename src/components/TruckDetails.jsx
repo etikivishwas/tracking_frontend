@@ -11,8 +11,6 @@ import {
   IoChevronUp,
   IoArrowBack,
 } from "react-icons/io5";
-import { LuFuel } from "react-icons/lu";
-import { GiWeightScale } from "react-icons/gi";
 import {
   AreaChart,
   Area,
@@ -39,7 +37,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
-// polygon helpers (unchanged)
+// Polygon helpers
 function polygonArea(coords) {
   let area = 0;
   for (let i = 0; i < coords.length - 1; i++) {
@@ -49,6 +47,7 @@ function polygonArea(coords) {
   }
   return Math.abs(area / 2);
 }
+
 function triangleArea(p1, p2, p3) {
   return Math.abs(
     (p1[0] * (p2[1] - p3[1]) +
@@ -57,6 +56,7 @@ function triangleArea(p1, p2, p3) {
       2
   );
 }
+
 function isPointInside(point, polygon) {
   const polyArea = polygonArea(polygon);
   let sumArea = 0;
@@ -81,7 +81,7 @@ function TruckDetails() {
   const [openTile, setOpenTile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Theme state (persisted)
+  // Theme state
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem("milieu-theme") || "dark";
@@ -89,14 +89,16 @@ function TruckDetails() {
       return "dark";
     }
   });
+
   useEffect(() => {
     try {
       localStorage.setItem("milieu-theme", theme);
     } catch {}
   }, [theme]);
+
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  // Quarry boundary polygon (unchanged)
+  // Quarry boundary
   const quarryBoundaryLatLng = [
     [15.585024, 79.822357],
     [15.584936, 79.823761],
@@ -111,62 +113,69 @@ function TruckDetails() {
     [15.585024, 79.822357],
   ];
 
-  // Fetch truck details
+  // Reusable fetch function
+  const fetchTruckData = (date = selectedDate) => {
+    setLoading(true);
+    axios
+      .get(`${API_URL}/api/trucks/${id}?date=${date.toISOString().split("T")[0]}`)
+      .then((res) => {
+        setLogs(res.data.logs || []);
+        setTracker(res.data.tracker?.[0] || null);
+        setLocation(res.data.location || null);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching truck data:", err);
+        setLoading(false);
+      });
+  };
+
+  // Initial fetch + auto-refresh every 30 seconds
   useEffect(() => {
-    console.log("Fetching truck details for ID:", id); // Log the truck ID
+    console.log("Fetching truck details for ID:", id);
     setTruck(null);
     setLogs([]);
     setTracker(null);
     setLocation(null);
     setLoading(true);
 
+    // Initial truck info fetch
     axios
       .get(`${API_URL}/api/trucks/${id}`)
       .then((res) => {
-        console.log("API response for truck details:", res.data); // Log the API response
         setTruck(res.data.truck);
         setLogs(res.data.logs || []);
-        setTracker(res.data.tracker?.[0] || null); // Use the first tracker object
+        setTracker(res.data.tracker?.[0] || null);
         setLocation(res.data.location || null);
         setTimeout(() => setLoading(false), 500);
       })
       .catch((err) => {
-        console.error("Error fetching truck details:", err); // Log the error
+        console.error("Error fetching truck details:", err);
         setLoading(false);
       });
+
+    // Auto-refresh interval
+    const interval = setInterval(() => {
+      fetchTruckData();
+    }, 30000);
+
+    return () => clearInterval(interval); // cleanup on unmount
   }, [id]);
 
-  // Date change fetch
+  // Handle date change
   const handleDateChange = (date) => {
-    console.log("Fetching truck data for date:", date); // Log the selected date
     setSelectedDate(date);
-    setLoading(true);
-
-    axios
-      .get(`${API_URL}/api/trucks/${id}?date=${date.toISOString().split("T")[0]}`)
-      .then((res) => {
-        console.log("API response for truck data on date:", res.data); // Log the API response
-        setLogs(res.data.logs || []);
-        setTracker(res.data.tracker);
-        setLocation(res.data.location);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching truck data for date:", err); // Log the error
-        setLoading(false);
-      });
+    fetchTruckData(date);
   };
 
-  // Reverse Geocoding
+  // Reverse geocoding
   useEffect(() => {
     if (tracker?.latitude && tracker?.longitude) {
-      console.log("Performing reverse geocoding for:", tracker.latitude, tracker.longitude); // Log coordinates
       axios
         .get(
           `https://nominatim.openstreetmap.org/reverse?lat=${tracker.latitude}&lon=${tracker.longitude}&format=json`
         )
         .then((res) => {
-          console.log("Reverse geocoding response:", res.data); // Log the response
           if (res.data?.display_name) {
             setResolvedAddress(res.data.display_name);
           }
@@ -211,6 +220,7 @@ function TruckDetails() {
           </div>
         ) : (
           <>
+            {/* Header */}
             <header className={styles.header}>
               <div className={styles.leftHead}>
                 <button className={styles.backBtn} onClick={() => navigate(-1)}>
@@ -225,8 +235,6 @@ function TruckDetails() {
                   <span className={styles.badge}>5</span>
                   <FaBell />
                 </div>
-
-                {/* Theme toggle beside notification */}
                 <button
                   onClick={toggleTheme}
                   className={styles.themeToggle}
@@ -245,7 +253,7 @@ function TruckDetails() {
               </div>
             </header>
 
-            {/* ROW 1 */}
+            {/* ROW 1: Hero and Stats */}
             <section className={styles.rowOne}>
               <div className={styles.heroCard}>
                 <div className={styles.heroText}>
@@ -266,7 +274,6 @@ function TruckDetails() {
               </div>
 
               <div className={styles.statStack}>
-                {/* Current Location */}
                 <div
                   className={`${styles.statTile} ${openTile === "loc" ? styles.open : ""}`}
                   onClick={() => toggleTile("loc")}
@@ -276,16 +283,11 @@ function TruckDetails() {
                       <IoLocationOutline className={styles.tileIcon} />
                       <span className={styles.tileTitle}>CURRENT LOCATION</span>
                     </div>
-                    {openTile === "loc" ? (
-                      <IoChevronUp className={styles.tileChevron} />
-                    ) : (
-                      <IoChevronDown className={styles.tileChevron} />
-                    )}
+                    {openTile === "loc" ? <IoChevronUp /> : <IoChevronDown />}
                   </div>
                   {openTile === "loc" && <div className={styles.tileContent}>{currentLocation}</div>}
                 </div>
 
-                {/* Condition */}
                 <div
                   className={`${styles.statTile} ${openTile === "cond" ? styles.open : ""}`}
                   onClick={() => toggleTile("cond")}
@@ -310,79 +312,31 @@ function TruckDetails() {
               </div>
             </section>
 
-            {/* --- ROW 2: Info --- */}
+            {/* ROW 2: Info Cards */}
             <section className={styles.rowTwo}>
-              {/* Truck Data */}
               <div className={styles.infoCard}>
                 <h3>Truck Data Info</h3>
                 <div className={styles.infoGrid}>
-                  <div>
-                    <span>Latitude:</span>
-                    <span>{tracker?.latitude}</span>
-                  </div>
-                  <div>
-                    <span>Longitude:</span>
-                    <span>{tracker?.longitude}</span>
-                  </div>
-                  <div>
-                    <span>Altitude:</span>
-                    <span>{tracker?.altitude} m</span>
-                  </div>
-                  <div>
-                    <span>Speed:</span>
-                    <span>{tracker?.speed_kmph} km/h</span>
-                  </div>
-                  <div>
-                    <span>Heading:</span>
-                    <span>{tracker?.heading_degrees}°</span>
-                  </div>
-                  <div>
-                    <span>Ignition:</span>
-                    <span>{tracker?.ignition ? "ON" : "OFF"}</span>
-                  </div>
-                  <div>
-                    <span>Event:</span>
-                    <span>
-                      {tracker?.event_type} - {tracker?.event_description}
-                    </span>
-                  </div>
-                  <div>
-                    <span>Geofence:</span>
-                    <span>{!isInside ? "🚨 Outside" : "✅ Inside"}</span>
-                  </div>
+                  <div><span>Latitude:</span><span>{tracker?.latitude}</span></div>
+                  <div><span>Longitude:</span><span>{tracker?.longitude}</span></div>
+                  <div><span>Altitude:</span><span>{tracker?.altitude} m</span></div>
+                  <div><span>Speed:</span><span>{tracker?.speed_kmph} km/h</span></div>
+                  <div><span>Heading:</span><span>{tracker?.heading_degrees}°</span></div>
+                  <div><span>Ignition:</span><span>{tracker?.ignition ? "ON" : "OFF"}</span></div>
+                  <div><span>Event:</span><span>{tracker?.event_type} - {tracker?.event_description}</span></div>
+                  <div><span>Geofence:</span><span>{!isInside ? "🚨 Outside" : "✅ Inside"}</span></div>
                 </div>
               </div>
 
-              {/* GPS Tracker Device */}
               <div className={styles.infoCard}>
                 <h3>Tracker Location Device</h3>
                 <div className={styles.infoGrid}>
-                  <div>
-                    <span>Device ID:</span>
-                    <span>{tracker?.device_id}</span>
-                  </div>
-                  <div>
-                    <span>Timestamp:</span>
-                    <span>
-                      {tracker
-                        ? new Date(tracker.timestamp).toLocaleString()
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div>
-                    <span>Battery:</span>
-                    <span>{tracker?.battery_level}%</span>
-                  </div>
-                  <div>
-                    <span>Signal:</span>
-                    <span>{tracker?.signal_strength}</span>
-                  </div>
-                  <div>
-                    <span>GPS Fix:</span>
-                    <span>{tracker?.gps_fix ? "Yes" : "No"}</span>
-                  </div>
-                  <div>
-                    <span>Date:</span>
+                  <div><span>Device ID:</span><span>{tracker?.device_id}</span></div>
+                  <div><span>Timestamp:</span><span>{tracker ? new Date(tracker.timestamp).toLocaleString() : "N/A"}</span></div>
+                  <div><span>Battery:</span><span>{tracker?.battery_level}%</span></div>
+                  <div><span>Signal:</span><span>{tracker?.signal_strength}</span></div>
+                  <div><span>GPS Fix:</span><span>{tracker?.gps_fix ? "Yes" : "No"}</span></div>
+                  <div><span>Date:</span>
                     <DatePicker
                       selected={selectedDate}
                       onChange={handleDateChange}
@@ -393,7 +347,6 @@ function TruckDetails() {
                 </div>
               </div>
 
-              {/* Working Hours */}
               <div className={styles.hoursCard}>
                 <h3>WORKING HOURS TODAY</h3>
                 <div className={styles.rings}>
@@ -401,77 +354,32 @@ function TruckDetails() {
                   <div className={styles.ringB} />
                   <div className={styles.ringC} />
                   <div className={styles.hoursCenter}>
-                    <div className={styles.hoursNumber}>
-                      {String(todayHours).padStart(2, "0")}
-                    </div>
+                    <div className={styles.hoursNumber}>{String(todayHours).padStart(2, "0")}</div>
                     <div className={styles.hoursLabel}>HOURS</div>
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* --- Fuel, Weight, Distance Chart --- */}
-            {/* <div className={styles.container2}>
-              <div className={styles.fuel}>
-                <LuFuel className={styles.icon1} />
-                <p className={styles.para}>Fuel Consumption</p>
-                <p className={styles.para2}>
-                  {latestLog ? latestLog.fuel_consumption : "N/A"} Ltr
-                </p>
-              </div>
-              <div className={styles.weight}>
-                <GiWeightScale className={styles.icon1} />
-                <p className={styles.para}>Material Tonnage</p>
-                <p className={styles.para2}>
-                  {latestLog ? latestLog.weight : "N/A"} Tons
-                </p>
-              </div>
-              <div className={styles.chartSection}>
-                <h6 style={{ color: "white" }}>Total Distance Traveled</h6>
-                <ResponsiveContainer width="100%" height="90%">
-                  <AreaChart data={logs}>
-                    <XAxis dataKey="log_time" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="distance_travelled"
-                      stroke="#28a745"
-                      fill="#28a745"
-                      fillOpacity={0.3}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div> */}
-
-            {/* --- MAP --- */}
+            {/* MAP */}
             <div className="p-3 mb-5">
               <h6 style={{ color: "white" }}>Live Truck Location</h6>
-              {tracker && tracker.latitude && tracker.longitude ? ( // Ensure valid coordinates
+              {tracker && tracker.latitude && tracker.longitude ? (
                 <div style={{ height: "400px", width: "100%" }}>
                   <MapContainer
-                    center={[tracker.latitude, tracker.longitude]} // Use tracker latitude and longitude
+                    center={[tracker.latitude, tracker.longitude]}
                     zoom={15}
-                    style={{
-                      height: "100%",
-                      width: "100%",
-                      borderRadius: "10px",
-                    }}
+                    style={{ height: "100%", width: "100%", borderRadius: "10px" }}
                   >
                     <TileLayer
                       url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                       attribution='Tiles © Esri — Source: Esri, Earthstar Geographics, Maxar'
                     />
-                    <Polygon
-                      positions={quarryBoundaryLatLng}
-                      pathOptions={{ color: "red" }}
-                    />
+                    <Polygon positions={quarryBoundaryLatLng} pathOptions={{ color: "red" }} />
                     <Marker position={[tracker.latitude, tracker.longitude]}>
                       <Popup>
                         Truck is here 🚚 <br />
-                        {resolvedAddress ||
-                          `${tracker.latitude}, ${tracker.longitude}`}
+                        {resolvedAddress || `${tracker.latitude}, ${tracker.longitude}`}
                       </Popup>
                     </Marker>
                   </MapContainer>
@@ -484,18 +392,13 @@ function TruckDetails() {
         )}
       </main>
 
-       <div className="mt-2">
-             <footer
-        className={`app-footer text-center ${
-          collapsed ? "footer-collapsed" : "footer-expanded"
-        }`}
-      >
-        © {new Date().getFullYear()} Designed and Developed by{" "}
-        <strong>Milieu</strong>. All rights reserved.
-      </footer>
-        </div>
-
-      
+      <div className="mt-2">
+        <footer
+          className={`app-footer text-center ${collapsed ? "footer-collapsed" : "footer-expanded"}`}
+        >
+          © {new Date().getFullYear()} Designed and Developed by <strong>Milieu</strong>. All rights reserved.
+        </footer>
+      </div>
     </div>
   );
 }

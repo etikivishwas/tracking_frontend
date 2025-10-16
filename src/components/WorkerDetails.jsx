@@ -100,77 +100,80 @@ function WorkerDetails() {
   }, [theme]);
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  const fetchWorkerData = (date) => {
-    setLoading(true);
-    const dateQuery = date ? `?date=${date.toISOString().split("T")[0]}` : "";
-    console.log("Fetching worker data for ID:", id); // Log worker ID
-    console.log("Date query:", dateQuery); // Log date query string
+  const fetchWorkerData = (date, showLoading = false) => {
+  if (showLoading) setLoading(true); // show loading text only when explicitly told
 
-    axios
-      .get(`${API_URL}/api/workers/${id}${dateQuery}`)
-      .then((res) => {
-        console.log("API response for worker data:", res.data); // Log API response
-        setWorker(res.data.worker);
-        setLogs(res.data.logs || []);
-        setLocation(res.data.location || null);
-        setActivity(res.data.latest_activity || null);
+  const dateQuery = date ? `?date=${date.toISOString().split("T")[0]}` : "";
+  console.log("Fetching worker data for ID:", id);
+  console.log("Date query:", dateQuery);
+
+  axios
+    .get(`${API_URL}/api/workers/${id}${dateQuery}`)
+    .then((res) => {
+      console.log("API response for worker data:", res.data);
+      setWorker(res.data.worker);
+      setLogs(res.data.logs || []);
+      setLocation(res.data.location || null);
+      setActivity(res.data.latest_activity || null);
+
+      axios
+        .get(`${API_URL}/api/workers/${id}/gateway-distances`)
+        .then((res) => {
+          console.log("Gateway distances fetched:", res.data);
+          setGatewayDistances(res.data);
+        })
+        .catch((err) => console.error("Error fetching gateway distances:", err));
+
+      if (showLoading) setLoading(false);
+
+      // Reverse geocoding
+      if (res.data.location.latitude && res.data.location.longitude) {
+        console.log(
+          "Performing reverse geocoding for:",
+          res.data.location.latitude,
+          res.data.location.longitude
+        );
         axios
-          .get(`${API_URL}/api/workers/${id}/gateway-distances`)
-          .then((res) => {
-            console.log("Gateway distances fetched:", res.data); // <-- Add this line
-            setGatewayDistances(res.data);
+          .get(
+            `https://nominatim.openstreetmap.org/reverse?lat=${res.data.location.latitude}&lon=${res.data.location.longitude}&format=json`
+          )
+          .then((geoRes) => {
+            console.log("Reverse geocoding response:", geoRes.data);
+            if (geoRes.data?.display_name) {
+              setResolvedAddress(geoRes.data.display_name);
+            }
           })
-          .catch((err) => console.error("Error fetching gateway distances:", err));
+          .catch((err) => console.error("Reverse geocoding failed:", err));
+      }
+    })
+    .catch((err) => {
+      console.error("Error fetching worker data:", err);
+      if (showLoading) setLoading(false);
+    });
+};
 
-        setLoading(false);
 
-        // Perform reverse geocoding for the location's latitude and longitude
-        if (res.data.location.latitude && res.data.location.longitude) {
-          console.log(
-            "Performing reverse geocoding for:",
-            res.data.location.latitude,
-            res.data.location.longitude
-          ); // Log coordinates
-          axios
-            .get(
-              `https://nominatim.openstreetmap.org/reverse?lat=${res.data.location.latitude}&lon=${res.data.location.longitude}&format=json`
-            )
-            .then((geoRes) => {
-              console.log("Reverse geocoding response:", geoRes.data); // Log reverse geocoding response
-              if (geoRes.data?.display_name) {
-                setResolvedAddress(geoRes.data.display_name);
-              }
-            })
-            .catch((err) => console.error("Reverse geocoding failed:", err));
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching worker data:", err); // Log error
-        setLoading(false);
-      });
+  useEffect(() => {
+  const fetchWithScrollPreserved = async (showLoading = false) => {
+    const scrollY = window.scrollY; // Save scroll position
+    await fetchWorkerData(selectedDate, showLoading); // Fetch data
+    window.scrollTo(0, scrollY); // Restore scroll position
   };
 
-  // useEffect(() => {
-  //   // Fetch immediately when component mounts or when id/date changes
-  //   fetchWorkerData(selectedDate);
+  // Fetch immediately with loading text
+  fetchWithScrollPreserved(true);
 
-  //   // Set up auto refresh every 30 seconds
-  //   const interval = setInterval(() => {
-  //     fetchWorkerData(selectedDate);
-  //   }, 30000);
+  // Auto refresh every 30 seconds without showing "Loading..."
+  const interval = setInterval(() => {
+    fetchWithScrollPreserved(false);
+  }, 30000);
 
-  //   // Cleanup when component unmounts or id/date changes
-  //   return () => clearInterval(interval);
-  // }, [id, selectedDate]);
+  // Cleanup interval on unmount or dependency change
+  return () => clearInterval(interval);
+}, [id, selectedDate]);
 
-  // const handleDateChange = (date) => {
-  //   setSelectedDate(date);
-  //   fetchWorkerData(date);
-  // };
-  useEffect(() => {
-  // Fetch immediately when component mounts or when id/date changes
-  fetchWorkerData(selectedDate);
-  }, [id, selectedDate]);
+
+
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -556,3 +559,39 @@ function WorkerDetails() {
 }
 
 export default WorkerDetails;
+
+{/* --- Fuel, Weight, Distance Chart --- */}
+            {/* <div className={styles.container2}>
+              <div className={styles.fuel}>
+                <LuFuel className={styles.icon1} />
+                <p className={styles.para}>Fuel Consumption</p>
+                <p className={styles.para2}>
+                  {latestLog ? latestLog.fuel_consumption : "N/A"} Ltr
+                </p>
+              </div>
+              <div className={styles.weight}>
+                <GiWeightScale className={styles.icon1} />
+                <p className={styles.para}>Material Tonnage</p>
+                <p className={styles.para2}>
+                  {latestLog ? latestLog.weight : "N/A"} Tons
+                </p>
+              </div>
+              <div className={styles.chartSection}>
+                <h6 style={{ color: "white" }}>Total Distance Traveled</h6>
+                <ResponsiveContainer width="100%" height="90%">
+                  <AreaChart data={logs}>
+                    <XAxis dataKey="log_time" />
+                    <YAxis />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="distance_travelled"
+                      stroke="#28a745"
+                      fill="#28a745"
+                      fillOpacity={0.3}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div> */}
+
