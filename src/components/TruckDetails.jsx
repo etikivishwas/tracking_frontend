@@ -381,22 +381,41 @@ function TruckDetails() {
             {/* MAP */}
             <div className="p-3 mb-5">
               <h6 style={{ color: "white" }}>Live Truck Location</h6>
+
               {tracker && tracker.latitude && tracker.longitude ? (
                 <div style={{ height: "400px", width: "100%" }}>
                   <MapContainer
                     center={[tracker.latitude, tracker.longitude]}
-                    zoom={15}
+                    zoom={18}
+                    zoomSnap={0}
+                    zoomDelta={0.25}  // Zoom-in VERY close (near building level)
                     style={{ height: "100%", width: "100%", borderRadius: "10px" }}
                   >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      maxZoom={22}
+                    />
+                    {/* -------- BASE LAYER (Satellite) -------- */}
                     <TileLayer
                       url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                       attribution='Tiles © Esri — Source: Esri, Earthstar Geographics, Maxar'
                     />
+
+                    {/* -------- NEW LAYER (Roads + Labels like Google Maps) -------- */}
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      opacity={0.75}   // Slight transparency so it merges with satellite
+                    />
+
+                    {/* Quarry boundary */}
                     <Polygon positions={quarryBoundaryLatLng} pathOptions={{ color: "red" }} />
+
+                    {/* Route Path in BLACK */}
                     {routePath.length > 1 && (
-                      <Polyline positions={routePath} color="cyan" weight={4} />
+                      <Polyline positions={routePath} color="black" weight={4} />
                     )}
 
+                    {/* Truck Marker */}
                     <Marker position={[tracker.latitude, tracker.longitude]}>
                       <Popup>
                         Truck is here 🚚 <br />
@@ -409,6 +428,7 @@ function TruckDetails() {
                 <p style={{ color: "black" }}>Location not available</p>
               )}
             </div>
+
           </>
         )}
       </main>
