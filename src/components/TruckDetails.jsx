@@ -143,6 +143,28 @@ function TruckDetails() {
       .catch((err) => console.error("Route path fetch error:", err));
   };
 
+  const fetchTruckDataByDate = async (date) => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/api/trucks/${id}/by-date?date=${date}`
+    );
+
+    const data = response.data;
+
+    setLogs(data.logs || []);
+    setTracker(data.latestTracker || null);
+
+    setRoutePath(
+      data.routePath?.map((p) => [p.latitude, p.longitude]) || []
+    );
+
+  } catch (error) {
+    console.error("Error fetching truck data for date:", error);
+  }
+};
+
+
+
   useEffect(() => {
     fetchRoutePath();
   }, [id, selectedDate]);
@@ -182,9 +204,12 @@ function TruckDetails() {
 
   // Handle date change
   const handleDateChange = (date) => {
-    setSelectedDate(date);
-    fetchTruckData(date);
-  };
+  setSelectedDate(date);
+
+  const formatted = date.toISOString().split("T")[0]; // yyyy-mm-dd
+  fetchTruckDataByDate(formatted);
+};
+
 
   // Reverse geocoding
   useEffect(() => {
