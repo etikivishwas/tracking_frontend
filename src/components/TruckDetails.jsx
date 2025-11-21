@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import styles from "./TruckDetails.module.css";
 import { FaBell } from "react-icons/fa";
 import { FiSun, FiMoon } from "react-icons/fi";
+import { Polyline } from "react-leaflet";
 import {
   IoLocationOutline,
   IoChevronDown,
@@ -53,7 +54,7 @@ function triangleArea(p1, p2, p3) {
     (p1[0] * (p2[1] - p3[1]) +
       p2[0] * (p3[1] - p1[1]) +
       p3[0] * (p1[1] - p2[1])) /
-      2
+    2
   );
 }
 
@@ -80,6 +81,8 @@ function TruckDetails() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [openTile, setOpenTile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [routePath, setRoutePath] = useState([]);
+
 
   // Theme state
   const [theme, setTheme] = useState(() => {
@@ -93,7 +96,7 @@ function TruckDetails() {
   useEffect(() => {
     try {
       localStorage.setItem("milieu-theme", theme);
-    } catch {}
+    } catch { }
   }, [theme]);
 
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
@@ -129,6 +132,21 @@ function TruckDetails() {
         setLoading(false);
       });
   };
+  const fetchRoutePath = (date = selectedDate) => {
+    axios
+      .get(`${API_URL}/api/trucks/${id}/route?date=${date.toISOString().split("T")[0]}`)
+      .then((res) => {
+        setRoutePath(
+          res.data.route.map((p) => [p.lat, p.lng])
+        );
+      })
+      .catch((err) => console.error("Route path fetch error:", err));
+  };
+
+  useEffect(() => {
+    fetchRoutePath();
+  }, [id, selectedDate]);
+
 
   // Initial fetch + auto-refresh every 30 seconds
   useEffect(() => {
@@ -210,9 +228,8 @@ function TruckDetails() {
       />
 
       <main
-        className={`${styles.appcontent} ${
-          collapsed ? styles.contentcollapsed : styles.contentexpanded
-        }`}
+        className={`${styles.appcontent} ${collapsed ? styles.contentcollapsed : styles.contentexpanded
+          }`}
       >
         {loading ? (
           <div className={styles.loaderWrapper}>
@@ -304,8 +321,8 @@ function TruckDetails() {
                       {tracker?.event_type === "movement"
                         ? "Working"
                         : tracker?.event_type === "idle"
-                        ? "Idle"
-                        : "N/A"}
+                          ? "Idle"
+                          : "N/A"}
                     </div>
                   )}
                 </div>
@@ -376,6 +393,10 @@ function TruckDetails() {
                       attribution='Tiles © Esri — Source: Esri, Earthstar Geographics, Maxar'
                     />
                     <Polygon positions={quarryBoundaryLatLng} pathOptions={{ color: "red" }} />
+                    {routePath.length > 1 && (
+                      <Polyline positions={routePath} color="cyan" weight={4} />
+                    )}
+
                     <Marker position={[tracker.latitude, tracker.longitude]}>
                       <Popup>
                         Truck is here 🚚 <br />

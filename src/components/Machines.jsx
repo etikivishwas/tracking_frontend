@@ -4,27 +4,26 @@ import styles from "./Machines.module.css";
 import Sidebar from "./Sidebar";
 import { FaBell, FaSearch } from "react-icons/fa";
 import { FiSun, FiMoon } from "react-icons/fi";
-import Image from "./passport.jpg";
+import axios from "axios";
 import "../App.css";
 
-const API_URL = "https://trackingbackend-v23j.onrender.com"; 
+const API_URL = "https://trackingbackend-v23j.onrender.com";
 
-function Machines() {   
+const resolveImage = (url) => {
+  if (!url) return `${API_URL}/uploads/placeholder.jpg`;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${API_URL}${url.startsWith("/") ? url : `/${url}`}`;
+};
+
+function Machines() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [machines, setMachines] = useState([]);
-  const [loading, setLoading] = useState(true); // loader state
-  const [showForm, setShowForm] = useState(false);
-  const [newMachine, setNewMachine] = useState({
-    name: "",
-    role: "",
-    description: "",
-    image: "",
-    deviceId: "", // Added deviceId field
-  });
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
-  // Theme state (persisted)
+  // theme
   const [theme, setTheme] = useState(() => {
     try {
       return localStorage.getItem("milieu-theme") || "dark";
@@ -32,66 +31,96 @@ function Machines() {
       return "dark";
     }
   });
+
   useEffect(() => {
     try {
       localStorage.setItem("milieu-theme", theme);
     } catch {}
   }, [theme]);
+
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
-  // Fetch machines
-  const fetchMachines = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API_URL}/machines`);
-      const data = await res.json();
-      setMachines(data || []);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching machines:", error);
-      setLoading(false);
-    }
-  };
+  const [formData, setFormData] = useState({
+    name: "",
+    role: "",
+    description: "",
+    image: null,
+    deviceId: "",
+  });
 
+  // Fetch machines from backend
   useEffect(() => {
-    fetchMachines();
+    setLoading(true);
+    axios
+      .get(`${API_URL}/machines`)
+      .then((res) => {
+        const normalized = (res.data || []).map((m) => ({
+          ...m,
+          id: m.id || m._id,
+        }));
+        setMachines(normalized);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching machines:", err);
+        setLoading(false);
+      });
   }, []);
 
   const filteredMachines = machines.filter(
     (machine) =>
-      (machine.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (machine.role || "").toLowerCase().includes(searchTerm.toLowerCase())
+      (machine?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (machine?.role || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API_URL}/machines`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newMachine),
-      });
-      if (res.ok) {
-        alert("✅ Machine added successfully!");
-        setNewMachine({ name: "", role: "", description: "", image: "", deviceId: "" }); // Reset deviceId
-        setShowForm(false);
-        fetchMachines();
-      } else {
-        alert("❌ Failed to add machine");
-      }
-    } catch (err) {
-      console.error("Error adding machine:", err);
-    }
-  };
 
   const handleLogout = () => navigate("/");
 
+  // ✅ Input handler supports both text and file
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (files && files.length > 0) {
+      setFormData({ ...formData, [name]: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  // ✅ Submit form using FormData (for image upload)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const fd = new FormData();
+      Object.keys(formData).forEach((key) => {
+        fd.append(key, formData[key]);
+      });
+
+      await axios.post(`${API_URL}/machines`, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setShowModal(false);
+      setFormData({
+        name: "",
+        role: "",
+        description: "",
+        image: null,
+        deviceId: "",
+      });
+
+      const res = await axios.get(`${API_URL}/machines`);
+      const normalized = (res.data || []).map((m) => ({
+        ...m,
+        id: m.id || m._id,
+      }));
+      setMachines(normalized);
+    } catch (err) {
+      console.error("Error adding machine:", err);
+      alert("Error adding machine");
+    }
+  };
+
   return (
-    <div
-      className={`${styles.applayout} ${
-        theme === "light" ? styles.light : styles.dark
-      }`}
-    >
+    <div className={`${styles.applayout} ${theme === "light" ? styles.light : styles.dark}`}>
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
@@ -115,7 +144,6 @@ function Machines() {
               <FaBell />
             </div>
 
-            {/* Theme toggle button beside the bell */}
             <button
               onClick={toggleTheme}
               className={styles.themeToggle}
@@ -125,7 +153,11 @@ function Machines() {
               {theme === "dark" ? <FiSun /> : <FiMoon />}
             </button>
 
-            <img src={Image} alt="User" className={styles.avatar1} />
+            <img
+              src={`${API_URL}/uploads/1.jpg`}
+              alt="User"
+              className={styles.avatar1}
+            />
             <span className={styles.username}>Alex Kumar</span>
           </div>
         </div>
@@ -138,7 +170,7 @@ function Machines() {
             <div className={styles.topActions}>
               <button
                 className={styles.addButton}
-                onClick={() => setShowForm(true)}
+                onClick={() => setShowModal(true)}
               >
                 + Add Machine
               </button>
@@ -155,26 +187,19 @@ function Machines() {
             </div>
           </div>
 
-          {/* Loader */}
           {loading ? (
             <div className={styles.loading}>Loading machines...</div>
           ) : (
             <div className={styles.cards}>
               {filteredMachines.map((machine) => (
                 <div
-                  key={machine.id || machine._id}
+                  key={machine.id}
                   className={styles.card}
-                  onClick={() =>
-                    navigate(`/machines/${machine.id || machine._id}`)
-                  }
+                  onClick={() => navigate(`/machines/${machine.id}`)}
                 >
                   <div className={styles.profileHeader}>
                     <img
-                      src={
-                        machine.image?.startsWith("http")
-                          ? machine.image
-                          : `${API_URL}${machine.image}`
-                      }
+                      src={resolveImage(machine.image)}
                       alt={machine.name}
                       className={styles.avatar}
                       onError={(e) =>
@@ -191,9 +216,10 @@ function Machines() {
                   </p>
                 </div>
               ))}
-
-              {filteredMachines.length === 0 && (
-                <p className={styles.noData}>No machines found.</p>
+              {!filteredMachines.length && (
+                <div className={styles.emptyState}>
+                  No machines match “{searchTerm}”.
+                </div>
               )}
             </div>
           )}
@@ -201,7 +227,7 @@ function Machines() {
       </div>
 
       {/* Modal */}
-      {showForm && (
+      {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
@@ -209,7 +235,7 @@ function Machines() {
               <button
                 type="button"
                 className={styles.closeBtn}
-                onClick={() => setShowForm(false)}
+                onClick={() => setShowModal(false)}
               >
                 ×
               </button>
@@ -218,46 +244,41 @@ function Machines() {
             <form onSubmit={handleSubmit} className={styles.form}>
               <input
                 type="text"
+                name="name"
                 placeholder="Machine Name"
-                value={newMachine.name}
-                onChange={(e) =>
-                  setNewMachine({ ...newMachine, name: e.target.value })
-                }
+                value={formData.name}
+                onChange={handleChange}
                 required
               />
               <input
                 type="text"
+                name="role"
                 placeholder="Role"
-                value={newMachine.role}
-                onChange={(e) =>
-                  setNewMachine({ ...newMachine, role: e.target.value })
-                }
+                value={formData.role}
+                onChange={handleChange}
               />
               <textarea
+                name="description"
                 placeholder="Description"
-                value={newMachine.description}
-                onChange={(e) =>
-                  setNewMachine({
-                    ...newMachine,
-                    description: e.target.value,
-                  })
-                }
+                value={formData.description}
+                onChange={handleChange}
+              ></textarea>
+
+              {/* ✅ File upload instead of URL */}
+              <input
+                type="file"
+                name="image"
+                accept="image/*"
+                onChange={handleChange}
+                required
               />
+
               <input
                 type="text"
-                placeholder="Image URL"
-                value={newMachine.image}
-                onChange={(e) =>
-                  setNewMachine({ ...newMachine, image: e.target.value })
-                }
-              />
-              <input
-                type="text"
-                placeholder="Device ID" // Added input for deviceId
-                value={newMachine.deviceId}
-                onChange={(e) =>
-                  setNewMachine({ ...newMachine, deviceId: e.target.value })
-                }
+                name="deviceId"
+                placeholder="Device ID"
+                value={formData.deviceId}
+                onChange={handleChange}
                 required
               />
 
@@ -267,8 +288,8 @@ function Machines() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setShowModal(false)}
                   className={styles.cancelBtn}
-                  onClick={() => setShowForm(false)}
                 >
                   Cancel
                 </button>
