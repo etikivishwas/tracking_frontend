@@ -144,24 +144,24 @@ function TruckDetails() {
   };
 
   const fetchTruckDataByDate = async (date) => {
-  try {
-    const response = await axios.get(
-      `${API_URL}/api/trucks/${id}/by-date?date=${date}`
-    );
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/trucks/${id}/by-date?date=${date}`
+      );
 
-    const data = response.data;
+      const data = response.data;
 
-    setLogs(data.logs || []);
-    setTracker(data.latestTracker || null);
+      setLogs(data.logs || []);
+      setTracker(data.latestTracker || null);
 
-    setRoutePath(
-      data.routePath?.map((p) => [p.latitude, p.longitude]) || []
-    );
+      setRoutePath(
+        data.routePath?.map((p) => [p.latitude, p.longitude]) || []
+      );
 
-  } catch (error) {
-    console.error("Error fetching truck data for date:", error);
-  }
-};
+    } catch (error) {
+      console.error("Error fetching truck data for date:", error);
+    }
+  };
 
 
 
@@ -204,11 +204,11 @@ function TruckDetails() {
 
   // Handle date change
   const handleDateChange = (date) => {
-  setSelectedDate(date);
+    setSelectedDate(date);
 
-  const formatted = date.toISOString().split("T")[0]; // yyyy-mm-dd
-  fetchTruckDataByDate(formatted);
-};
+    const formatted = date.toISOString().split("T")[0]; // yyyy-mm-dd
+    fetchTruckDataByDate(formatted);
+  };
 
 
   // Reverse geocoding
@@ -226,6 +226,13 @@ function TruckDetails() {
         .catch((err) => console.error("Reverse geocoding failed:", err));
     }
   }, [tracker]);
+
+  const truckIcon = L.divIcon({
+                      html: `<div style="font-size: 30px;">🚚</div>`,
+                    className: "truck-marker",
+                    iconSize: [50, 50], // adjust size
+                    iconAnchor: [25, 25], // center the emoji
+              });
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
   const todayHours = latestLog ? latestLog.hours_worked : 0;
@@ -441,7 +448,11 @@ function TruckDetails() {
                     )}
 
                     {/* Truck Marker */}
-                    <Marker position={[tracker.latitude, tracker.longitude]}>
+
+                    <Marker
+                      position={[tracker.latitude, tracker.longitude]}
+                      icon={truckIcon}
+                    >
                       <Popup>
                         Truck is here 🚚 <br />
                         {resolvedAddress || `${tracker.latitude}, ${tracker.longitude}`}
