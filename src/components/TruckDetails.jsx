@@ -104,7 +104,7 @@ function TruckDetails() {
   };
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyBIY2EGzcjO4rfs_2lacMoHzyg-8ZpIFT8",
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
     id: "script-loader",
     version: "weekly",
     libraries: ["maps"],
