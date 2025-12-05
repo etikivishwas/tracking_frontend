@@ -5,7 +5,6 @@ import Sidebar from "./Sidebar";
 import styles from "./TruckDetails.module.css";
 import { FaBell } from "react-icons/fa";
 import { FiSun, FiMoon } from "react-icons/fi";
-import { Polyline } from "react-leaflet";
 import {
   IoLocationOutline,
   IoChevronDown,
@@ -23,7 +22,7 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup, Polygon } from "react-leaflet";
+import { GoogleMap, Marker, Polyline, Polygon, useJsApiLoader } from "@react-google-maps/api";
 import L from "leaflet";
 
 const API_URL =
@@ -92,6 +91,28 @@ function TruckDetails() {
       return "dark";
     }
   });
+
+  const containerStyle = {
+    width: "100%",
+    height: "400px",
+    borderRadius: "10px",
+  };
+
+  const center = {
+    lat: tracker?.latitude || 15.585,
+    lng: tracker?.longitude || 79.823,
+  };
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: "AIzaSyBIY2EGzcjO4rfs_2lacMoHzyg-8ZpIFT8",
+    id: "script-loader",
+    version: "weekly",
+    libraries: ["maps"],
+    language: "en",
+    region: "US",
+  });
+
+
 
   useEffect(() => {
     try {
@@ -227,12 +248,45 @@ function TruckDetails() {
     }
   }, [tracker]);
 
-  const truckIcon = L.divIcon({
-                      html: `<div style="font-size: 30px;">🚚</div>`,
-                    className: "truck-marker",
-                    iconSize: [50, 50], // adjust size
-                    iconAnchor: [25, 25], // center the emoji
-              });
+  function createRotatedEmojiIcon(emoji, size = 48, angle = 0) {
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, size, size);
+
+    // Move center → rotate → draw emoji
+    ctx.translate(size / 2, size / 2);
+    ctx.rotate((angle * Math.PI) / 180);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `${size}px Arial`;
+    ctx.fillText(emoji, 0, 0);
+
+    return canvas.toDataURL();
+  }
+
+  function createRightFacingTruck(size = 40) {
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+
+    const ctx = canvas.getContext("2d");
+
+    // Flip horizontally
+    ctx.translate(size, 0);
+    ctx.scale(-1, 1);
+
+    ctx.font = `${size}px Arial`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🚚", size / 2, size / 2);
+
+    return canvas.toDataURL();
+  }
+
+
 
   const latestLog = logs.length ? logs[logs.length - 1] : null;
   const todayHours = latestLog ? latestLog.hours_worked : 0;
@@ -414,56 +468,51 @@ function TruckDetails() {
             <div className="p-3 mb-5">
               <h6 style={{ color: "white" }}>Live Truck Location</h6>
 
-              {tracker && tracker.latitude && tracker.longitude ? (
-                <div style={{ height: "400px", width: "100%" }}>
-                  <MapContainer
-                    center={[tracker.latitude, tracker.longitude]}
-                    zoom={18}
-                    zoomSnap={0}
-                    zoomDelta={0.25}  // Zoom-in VERY close (near building level)
-                    style={{ height: "100%", width: "100%", borderRadius: "10px" }}
-                  >
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      maxZoom={22}
+              {!isLoaded ? (
+                <div style={{ color: "white" }}>Loading Map…</div>
+              ) : tracker?.latitude ? (
+                <GoogleMap
+                  mapContainerStyle={containerStyle}
+                  center={center}
+                  zoom={18}
+                  options={{
+                    mapTypeId: "roadmap",       // Satellite + labels
+                    gestureHandling: "greedy",
+                    tilt: 0,
+                  }}
+                >
+
+                  {/* Truck Marker */}
+                  <Marker
+                    position={{ lat: tracker.latitude, lng: tracker.longitude }}
+                    icon={{
+                      url: createRightFacingTruck(40),
+                      scaledSize: new window.google.maps.Size(40, 40),
+                    }}
+                  />
+
+
+
+                  {/* Route Path as polyline */}
+                  {routePath.length > 1 && (
+                    <Polyline
+                      path={routePath.map((p) => ({ lat: p[0], lng: p[1] }))}
+                      options={{ strokeColor: "black", strokeWeight: 4 }}
                     />
-                    {/* -------- BASE LAYER (Satellite) -------- */}
-                    <TileLayer
-                      url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                      attribution='Tiles © Esri — Source: Esri, Earthstar Geographics, Maxar'
-                    />
+                  )}
 
-                    {/* -------- NEW LAYER (Roads + Labels like Google Maps) -------- */}
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      opacity={0.75}   // Slight transparency so it merges with satellite
-                    />
+                  {/* Quarry polygon */}
+                  <Polygon
+                    paths={quarryBoundaryLatLng.map(([lat, lng]) => ({ lat, lng }))}
+                    options={{ fillColor: "red", fillOpacity: 0.2, strokeColor: "red" }}
+                  />
 
-                    {/* Quarry boundary */}
-                    <Polygon positions={quarryBoundaryLatLng} pathOptions={{ color: "red" }} />
-
-                    {/* Route Path in BLACK */}
-                    {routePath.length > 1 && (
-                      <Polyline positions={routePath} color="black" weight={4} />
-                    )}
-
-                    {/* Truck Marker */}
-
-                    <Marker
-                      position={[tracker.latitude, tracker.longitude]}
-                      icon={truckIcon}
-                    >
-                      <Popup>
-                        Truck is here 🚚 <br />
-                        {resolvedAddress || `${tracker.latitude}, ${tracker.longitude}`}
-                      </Popup>
-                    </Marker>
-                  </MapContainer>
-                </div>
+                </GoogleMap>
               ) : (
-                <p style={{ color: "black" }}>Location not available</p>
+                <p style={{ color: "white" }}>Location not available</p>
               )}
             </div>
+
 
           </>
         )}

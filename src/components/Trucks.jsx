@@ -23,7 +23,8 @@ function Trucks() {
     role: "",
     description: "",
     image: null,
-    deviceId: "", // Added deviceId field
+    deviceId: "",
+    vehicle_no: ""   // NEW FIELD
   });
 
   // Theme (persisted)
@@ -34,11 +35,13 @@ function Trucks() {
       return "dark";
     }
   });
+
   useEffect(() => {
     try {
       localStorage.setItem("milieu-theme", theme);
     } catch {}
   }, [theme]);
+
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   // Fetch trucks
@@ -64,12 +67,18 @@ function Trucks() {
 
   const handleLogout = () => navigate("/");
 
+  // UPDATED handleChange → auto-uppercase for vehicle_no
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+
     if (files) {
       setFormData({ ...formData, [name]: files[0] });
     } else {
-      setFormData({ ...formData, [name]: value });
+      if (name === "vehicle_no") {
+        setFormData({ ...formData, [name]: value.toUpperCase() });
+      } else {
+        setFormData({ ...formData, [name]: value });
+      }
     }
   };
 
@@ -86,9 +95,15 @@ function Trucks() {
       });
 
       setShowModal(false);
-      setFormData({ name: "", role: "", description: "", image: null, deviceId: "" }); // Reset deviceId
+      setFormData({
+        name: "",
+        role: "",
+        description: "",
+        image: null,
+        deviceId: "",
+        vehicle_no: ""
+      });
 
-      // Refresh trucks list
       const res = await axios.get(`${API_URL}/api/trucks`);
       setTrucks(res.data || []);
     } catch (err) {
@@ -102,7 +117,6 @@ function Trucks() {
         theme === "light" ? styles.light : styles.dark
       }`}
     >
-      {/* Sidebar (optional: it can accept theme prop if you update Sidebar) */}
       <Sidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
@@ -127,12 +141,10 @@ function Trucks() {
               <FaBell />
             </div>
 
-            {/* Theme toggle beside notification */}
             <button
               onClick={toggleTheme}
               className={styles.themeToggle}
               aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
             >
               {theme === "dark" ? <FiSun /> : <FiMoon />}
             </button>
@@ -141,6 +153,7 @@ function Trucks() {
             <span className={styles.username}>Alex Kumar</span>
           </div>
         </div>
+
         <hr className={styles.horizontal} />
 
         {/* Content */}
@@ -148,12 +161,10 @@ function Trucks() {
           <div className={styles.topRow}>
             <h3 className={styles.sectionTitle}>VEHICLES</h3>
             <div className={styles.topActions}>
-              <button
-                className={styles.addButton}
-                onClick={() => setShowModal(true)}
-              >
+              <button className={styles.addButton} onClick={() => setShowModal(true)}>
                 + Add Truck
               </button>
+
               <div className={styles.searchContainer}>
                 <FaSearch className={styles.searchIcon} />
                 <input
@@ -167,7 +178,6 @@ function Trucks() {
             </div>
           </div>
 
-          {/* Loading */}
           {loading ? (
             <div className={styles.loading}>Loading trucks…</div>
           ) : (
@@ -231,6 +241,7 @@ function Trucks() {
                 onChange={handleChange}
                 required
               />
+
               <input
                 type="text"
                 name="role"
@@ -239,17 +250,30 @@ function Trucks() {
                 onChange={handleChange}
                 required
               />
+
               <textarea
                 name="description"
                 placeholder="Description"
                 value={formData.description}
                 onChange={handleChange}
               ></textarea>
+
               <input type="file" name="image" onChange={handleChange} />
+
+              {/* NEW INPUT — VEHICLE NUMBER */}
+              <input
+                type="text"
+                name="vehicle_no"
+                placeholder="Vehicle Number (CAPITAL LETTERS ONLY)"
+                value={formData.vehicle_no}
+                onChange={handleChange}
+                required
+              />
+
               <input
                 type="text"
                 name="deviceId"
-                placeholder="Device ID" // Added input for deviceId
+                placeholder="Device ID"
                 value={formData.deviceId}
                 onChange={handleChange}
                 required
