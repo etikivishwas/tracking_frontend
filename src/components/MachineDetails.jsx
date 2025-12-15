@@ -52,13 +52,18 @@ const API_URL =
 
 // Predefined Gateway coordinates
 const gatewayCoords = {
-  "Gateway-A1": { lat: 15.5869, lon: 79.8222694444, label: "A1" },
-  "Gateway-A2": { lat: 15.5863833333, lon: 79.825, label: "A2" },
-  'Gateway-A6': { lat: 15.5862416667, lon: 79.8273194444, label: "A6" },
-  'Gateway-A7': { lat: 15.5860916667, lon: 79.830075, label: "A7" },
-  'Gateway-A5': { lat: 15.5846722222, lon: 79.8278944444, label: "A5" },
-  "Gateway-A4": { lat: 15.5841944444, lon: 79.825075, label: "A4" },
-  "Gateway-A3": { lat: 15.5853583333, lon: 79.8240361111, label: "A3" },
+  // "Gateway-A1": { lat: 15.5869, lon: 79.8222694444, label: "A1" },
+  // "Gateway-A2": { lat: 15.5863833333, lon: 79.825, label: "A2" },
+  // 'Gateway-A6': { lat: 15.5862416667, lon: 79.8273194444, label: "A6" },
+  // 'Gateway-A7': { lat: 15.5860916667, lon: 79.830075, label: "A7" },
+  // 'Gateway-A5': { lat: 15.5846722222, lon: 79.8278944444, label: "A5" },
+  // "Gateway-A4": { lat: 15.5841944444, lon: 79.825075, label: "A4" },
+  // "Gateway-A3": { lat: 15.5853583333, lon: 79.8240361111, label: "A3" },
+
+  "Gateway-A1": { lat: 15.58675, lon: 79.82731, label: "A1" },
+  "Gateway-A2": { lat: 15.58625, lon: 79.82715, label: "A2" },
+  'Gateway-A3': {lat: 15.58626, lon: 79.82732, label: "A3" },
+  'Gateway-A4': {lat: 15.58674, lon: 79.82786, label: "A4" },
 }
 
 const bounds = [
