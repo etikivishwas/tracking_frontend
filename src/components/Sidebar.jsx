@@ -19,7 +19,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   return (
     <aside className={`app-sidebar ${collapsed ? "collapsed" : ""}`}>
       {/* ✅ Logo at the top (switches when collapsed) */}
-      <div className="sidebar-logo">
+      {/* <div className="sidebar-logo">
         {collapsed ? (
           <img
             src={sideLogo}
@@ -29,7 +29,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         ) : (
           <img src={logo} alt="Main Logo" className="logo-img m-2" />
         )}
-      </div>
+      </div> */}
 
       {/* Header with toggle */}
       <div className="sidebar-header">

@@ -36,9 +36,9 @@ function Login({ setIsAuthenticated }) {
     <div className={styles.container}>
       <div className={styles.loginCard}>
         {/* ✅ Logo on top center */}
-        <div className={styles.logoWrapper}>
+        {/* <div className={styles.logoWrapper}>
           <img src={logo} alt="App Logo" className={styles.logo} />
-        </div>
+        </div> */}
 
         {/* Theme toggle button (top-right of card). Reuse this component across pages. */}
         <div className={styles.themeWrapper}>
